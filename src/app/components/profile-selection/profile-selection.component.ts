@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { WebsocketService } from '../../../services/websocket.service';
-import { Profile, Provider } from '../../../interfaces/profile.interface';
+import { WebsocketService } from '../../services/websocket.service';
+import { Profile, Provider } from '../../interfaces/profile.interface';
 
 @Component({
   selector: 'app-profile-selection',
@@ -19,7 +19,7 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   constructor(private websocketService: WebsocketService) {}
 
   ngOnInit(): void {
-    this.uiSubscription = this.websocketService.newUIMessageData.subscribe(data => {
+    this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
       if (data && data.profiles) {
         this.profiles = data.profiles;
       }

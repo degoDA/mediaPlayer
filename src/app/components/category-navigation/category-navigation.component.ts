@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { WebsocketService } from '../../../services/websocket.service';
-import { CategoryItem } from '../../../interfaces/category.interface';
-import { MediaItem } from '../../../interfaces/media.interface'; // Assuming MediaItem might be emitted
+import { WebsocketService } from '../../services/websocket.service';
+import { CategoryItem } from '../../interfaces/category.interface';
+import { MediaItem } from '../../interfaces/media.interface'; // Assuming MediaItem might be emitted
 
 @Component({
   selector: 'app-category-navigation',
@@ -30,7 +30,7 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
   constructor(private websocketService: WebsocketService) {}
 
   ngOnInit(): void {
-    this.uiSubscription = this.websocketService.newUIMessageData.subscribe(data => {
+    this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
       if (data && data.categories) {
         this.categories = data.categories;
         // Simple title update logic: if there are categories, try to use the providerKey of the first one.

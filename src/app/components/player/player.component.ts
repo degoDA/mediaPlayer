@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { WebsocketService } from '../../../services/websocket.service';
-import { MediaPlayerState, NowPlayingData, PlaybackAction } from '../../../interfaces/player.interface';
+import { WebsocketService } from '../../services/websocket.service';
+import { MediaPlayerState, NowPlayingData, PlaybackAction } from '../../interfaces/player.interface';
 
 @Component({
   selector: 'app-player',
@@ -19,7 +19,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   constructor(private websocketService: WebsocketService) {}
 
   ngOnInit(): void {
-    this.uiSubscription = this.websocketService.newUIMessageData.subscribe(data => {
+    this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
       if (data && data.mediaPlayerState) {
         this.mediaPlayerState = data.mediaPlayerState;
         this.calculateProgress();
