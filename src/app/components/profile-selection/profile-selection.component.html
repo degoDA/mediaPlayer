@@ -1,0 +1,22 @@
+<div class="profile-selection-container">
+  <div *ngIf="profiles && profiles.length > 0; else noProfiles">
+    <div *ngFor="let profile of profiles" class="profile-section">
+      <h3>{{ profile.name }}</h3>
+      <div *ngIf="profile.providers && profile.providers.length > 0; else noProvidersForProfile">
+        <ul>
+          <li *ngFor="let provider of profile.providers">
+            <button (click)="selectProvider(provider.idService)">
+              {{ provider.name }}
+            </button>
+          </li>
+        </ul>
+      </div>
+      <ng-template #noProvidersForProfile>
+        <p>No providers available for this profile.</p>
+      </ng-template>
+    </div>
+  </div>
+  <ng-template #noProfiles>
+    <p>Loading profiles or no profiles found.</p>
+  </ng-template>
+</div>

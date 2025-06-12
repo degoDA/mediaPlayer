@@ -1,0 +1,67 @@
+.main-player-view-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full viewport height */
+  font-family: Arial, sans-serif;
+  background-color: #f0f2f5; /* Light background for the whole page */
+}
+
+.app-header {
+  background-color: #007bff; /* Primary color for header */
+  color: white;
+  padding: 15px 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.8em;
+}
+
+.content-area {
+  flex-grow: 1; /* Takes up available space between header and footer */
+  padding: 20px;
+  overflow-y: auto; /* Allows content to scroll if it overflows */
+  background-color: #ffffff; /* White background for content */
+  margin: 10px; /* Small margin around content area */
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Specific styling for child components if needed, or they manage their own internal styles */
+app-profile-selection, app-category-navigation {
+  display: block; /* Ensure they take up block space */
+  margin-bottom: 15px; /* Spacing between components if stacked */
+}
+
+.player-footer {
+  background-color: #ffffff; /* Player background */
+  padding: 10px;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* Shadow above the player */
+  border-top: 1px solid #e0e0e0;
+  /* position: sticky; bottom: 0; /* Sticks player to bottom, if desired and content scrolls */
+}
+
+/* If using a dedicated player area instead of footer */
+.dedicated-player-area {
+  padding: 20px;
+  margin-top: 10px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Basic responsive consideration */
+@media (max-width: 768px) {
+  .content-area {
+    padding: 15px;
+    margin: 5px;
+  }
+  .app-header h1 {
+    font-size: 1.5em;
+  }
+  .player-footer {
+    padding: 5px;
+  }
+}

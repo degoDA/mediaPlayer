@@ -1,0 +1,58 @@
+<div class="player-container" *ngIf="mediaPlayerState && mediaPlayerState.nowPlayingData">
+  <div class="album-art">
+    <img [src]="albumArtUrl" alt="Album Art for {{ trackTitle }}">
+  </div>
+
+  <div class="track-info">
+    <h3 class="track-title">{{ trackTitle }}</h3>
+    <p class="artist-name">{{ artistName }}</p>
+    <p class="album-name" *ngIf="albumName !== 'Unknown Album'">{{ albumName }}</p>
+    <p class="station-name" *ngIf="nowPlayingData?.stationName">{{ nowPlayingData?.stationName }}</p>
+  </div>
+
+  <div class="playback-controls">
+    <div class="progress-bar-container">
+      <span class="time-elapsed">{{ elapsedSecFormatted }}</span>
+      <progress class="playback-progress" [value]="playbackProgress" max="100"></progress>
+      <span class="time-total">{{ totalDurationFormatted }}</span>
+    </div>
+
+    <div class="buttons-container">
+      <button class="control-button" (click)="sendPlaybackAction('Previous')" [disabled]="!isActionAvailable('Previous')" aria-label="Previous Track">
+        &laquo; <!-- Previous Icon -->
+      </button>
+
+      <button class="control-button play-pause" (click)="sendPlaybackAction('PlayPause')" [disabled]="!isActionAvailable('PlayPause')" aria-label="Play or Pause">
+        <!-- Dynamically show Play or Pause icon/text based on actual playing state if available -->
+        &#9658;/|| <!-- Placeholder for Play/Pause Icon -->
+      </button>
+
+      <button class="control-button" (click)="sendPlaybackAction('Next')" [disabled]="!isActionAvailable('Next')" aria-label="Next Track">
+        &raquo; <!-- Next Icon -->
+      </button>
+    </div>
+
+    <!-- Example for other potential actions like Shuffle/Repeat -->
+    <div class="secondary-buttons-container" *ngIf="mediaPlayerState.availableActions">
+        <button *ngIf="mediaPlayerState.availableActions.hasOwnProperty('Shuffle')"
+                class="control-button secondary"
+                (click)="sendPlaybackAction('Shuffle')"
+                [class.active]="mediaPlayerState.availableActions.Shuffle === true"
+                aria-label="Shuffle">
+          Shuffle
+        </button>
+        <button *ngIf="mediaPlayerState.availableActions.hasOwnProperty('Repeat')"
+                class="control-button secondary"
+                (click)="sendPlaybackAction('Repeat')"
+                [class.active]="mediaPlayerState.availableActions.Repeat === true"
+                aria-label="Repeat">
+          Repeat
+        </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="player-container" *ngIf="!mediaPlayerState || !mediaPlayerState.nowPlayingData">
+  <p>No track currently playing or player data is unavailable.</p>
+</div>

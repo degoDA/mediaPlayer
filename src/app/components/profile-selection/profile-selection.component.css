@@ -1,0 +1,52 @@
+.profile-selection-container {
+  font-family: Arial, sans-serif;
+  padding: 15px;
+}
+
+.profile-section {
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.profile-section h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.profile-section ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.profile-section li {
+  margin-bottom: 8px;
+}
+
+.profile-section button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.profile-section button:hover {
+  background-color: #0056b3;
+}
+
+.profile-section button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+p {
+  color: #555;
+}

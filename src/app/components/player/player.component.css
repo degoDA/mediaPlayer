@@ -1,0 +1,155 @@
+.player-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+.album-art img {
+  width: 250px;
+  height: 250px;
+  border-radius: 6px;
+  object-fit: cover;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.track-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.track-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.artist-name, .album-name, .station-name {
+  font-size: 1em;
+  color: #555;
+  margin: 3px 0;
+}
+
+.station-name {
+  font-style: italic;
+}
+
+.playback-controls {
+  width: 100%;
+}
+
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.time-elapsed, .time-total {
+  font-size: 0.85em;
+  color: #666;
+}
+
+.playback-progress {
+  flex-grow: 1;
+  height: 8px;
+  margin: 0 10px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Styling for WebKit (Chrome, Safari) */
+.playback-progress::-webkit-progress-bar {
+  background-color: #e0e0e0;
+  border-radius: 4px;
+}
+
+.playback-progress::-webkit-progress-value {
+  background-color: #007bff;
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+/* Styling for Firefox */
+.playback-progress::-moz-progress-bar {
+  background-color: #007bff;
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+.buttons-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.control-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%; /* Circular buttons */
+  width: 50px;
+  height: 50px;
+  font-size: 1.5em; /* For icon text */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.control-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.control-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.control-button.play-pause {
+  width: 60px; /* Larger for play/pause */
+  height: 60px;
+  font-size: 2em;
+}
+
+.secondary-buttons-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.control-button.secondary {
+  width: auto; /* Auto width for text buttons */
+  height: 35px;
+  font-size: 0.9em;
+  border-radius: 20px; /* Pill shape */
+  padding: 0 15px;
+  background-color: #6c757d;
+}
+
+.control-button.secondary:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+.control-button.secondary.active {
+  background-color: #28a745; /* Green for active state */
+}
+
+.player-container p { /* For the "No track playing" message */
+  color: #777;
+  font-size: 1em;
+}

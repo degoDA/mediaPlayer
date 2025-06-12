@@ -3,19 +3,23 @@ import { Injectable } from '@angular/core';
 import { Subject, Observable, BehaviorSubject } from 'rxjs';
 import { v1 as uuidv1 } from 'uuid';
 import { Profile, Provider } from '../interfaces/profile.interface';
+import { CategoryItem } from '../interfaces/category.interface';
+import { MediaItem } from '../interfaces/media.interface';
+import { NowPlayingData, PlaybackAction, MediaPlayerState } from '../interfaces/player.interface';
 
 @Injectable({ providedIn: 'root' })
 export class WebsocketService {
   private socket?: WebSocket;
   private messages$ = new Subject<string>();
   private rcSessionId: string = '';
-  UIMessageDataSource = new BehaviorSubject('');
+  UIMessageDataSource = new BehaviorSubject<any>(''); // Keep any for now, or define a UIMessage interface
   newUIMessageData = this.UIMessageDataSource.asObservable();
-  profiles: any[] = [];
-  categories: any[] = [];
-  nowPlaying: any = {};
-  backCategory: any = {};
-  elapsedSec: string = '0';
+  profiles: Profile[] = [];
+  categories: CategoryItem[] = [];
+  // nowPlaying: NowPlayingData = {} as NowPlayingData; // Will be part of mediaPlayerState
+  // elapsedSec: string = '0'; // Will be part of mediaPlayerState
+  mediaPlayerState: MediaPlayerState = {};
+  public backCategory: any = {}; // Made public for CategoryNavigationComponent's isAtRootLevel
 
   connect(url: string, protocol: string): void {
     this.socket = new WebSocket(url, protocol);
@@ -134,10 +138,10 @@ export class WebsocketService {
       }
     }
     this.send(JSON.stringify(msg));
-    this.saveCategory(msg)
+    this.saveCategory(msg) // Consider if msg matches CategoryItem or if mapping is needed
   }
 
-  browseCategorie(categorie:any){
+  browseCategorie(category: CategoryItem){ // Updated type
     let msg = {
       "Device": {
         "MediaNavigation": {
@@ -147,21 +151,21 @@ export class WebsocketService {
             "ProfileKey": environment.profileKey,
             "MenuCategory": "ProviderBrowseMenu",
             "MenuCategoryOptions": {
-              "ProviderKey": categorie.providerKey,
-              "BrowseKey": categorie.browseKey,
+              "ProviderKey": category.providerKey,
+              "BrowseKey": category.browseKey,
               "ItemCount": 50,
               "ItemOffset": 0,
-              "SignedData": categorie.signedData
+              "SignedData": category.signedData
             }
           }
         }
       }
     }
     this.send(JSON.stringify(msg));
-    this.saveCategory(msg)
+    this.saveCategory(category); // Pass the category object
   }
 
-  playback(categorie:any){
+  playback(item: CategoryItem | MediaItem){ // Updated type to allow MediaItem as well
     let msg = {
       "Device": {
         "MediaPlayerNeXt": {
@@ -172,10 +176,11 @@ export class WebsocketService {
             "ActionId": "LoadSource",
             "ActionIdOptions": {
               "ProfileKey": environment.profileKey,
-              "ProviderKey": categorie.browseKey,
-              "AudioSourceUrl": "",
+              // Assuming browseKey from CategoryItem or MediaItem is used as ProviderKey here
+              "ProviderKey": item.browseKey,
+              "AudioSourceUrl": "", // This might need to be populated from item if available
               "AutoPlay": true,
-              "SignedData": categorie.signedData
+              "SignedData": item.signedData
             }
           }
         }
@@ -184,7 +189,7 @@ export class WebsocketService {
     this.send(JSON.stringify(msg));
   }
 
-  playbackAction(action:string){
+  playbackAction(action: string){ // Action could be typed if specific actions are known e.g. 'PlayPause' | 'Next'
     let msg = {
       "Device": {
         "MediaPlayerNeXt": {
@@ -238,22 +243,24 @@ export class WebsocketService {
         // Response providers
         response?.Device?.StreamingServices?.UserProfiles
       ) {
-        let profile: Profile = {};
+        this.profiles = []; // Initialize to ensure it's empty before processing
         for (const idProfile in response?.Device?.StreamingServices?.UserProfiles){
-          profile = {
+          let profile: Profile = { // Explicitly type here
             idProfile: idProfile,
             name: response?.Device?.StreamingServices?.UserProfiles[idProfile]?.Name,
             providers: [],
           }
           for (const idService in response?.Device?.StreamingServices?.UserProfiles[idProfile]?.AssignedProviders) {
-            const service: Provider = {
+            const service: Provider = { // Explicitly type here
               idService: idService,
               name: response?.Device?.StreamingServices?.UserProfiles[idProfile]?.AssignedProviders[idService].Name
             }
             if (profile.providers)
-              profile.providers.push(service)
+              profile.providers.push(service);
+            else
+              profile.providers = [service]; // Initialize if undefined
           }
-          this.profiles.push(profile)
+          this.profiles.push(profile);
         }
         this.reportUIMessageData({ profiles: this.profiles });
       }
@@ -262,18 +269,20 @@ export class WebsocketService {
         // Response provider categories
         response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems
       ) {
-        this.categories = []
-        for (const id in response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems) {
-          const categories = {
-            idCategorie: id,
-            browseItemName: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems[id].BrowseItemName,
-            signedData: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems[id].SignedData,
-            urlIcon: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems[id].UrlIcon,
-            browseKey: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems[id].BrowseKey,
-            providerKey: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems[id].MediaTypeMetaData?.ProviderKey,
-            streamingMediaType: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems[id].StreamingMediaType,
-          }
-          this.categories.push(categories)
+        this.categories = []; // Initialize to ensure it's empty
+        const menuDataItems = response.Device.MediaNavigation.RegisteredClientMenus[this.rcSessionId].MenuUpdates.ProviderBrowseMenu.Categories.Item01.MenuDataItems;
+        for (const id in menuDataItems) {
+          const item = menuDataItems[id];
+          const category: CategoryItem = { // Explicitly type here
+            idCategorie: id, // Or item.id if available and preferred
+            browseItemName: item.BrowseItemName,
+            signedData: item.SignedData,
+            urlIcon: item.UrlIcon,
+            browseKey: item.BrowseKey,
+            providerKey: item.MediaTypeMetaData?.ProviderKey, // Optional chaining for safety
+            streamingMediaType: item.StreamingMediaType,
+          };
+          this.categories.push(category);
         }
         this.reportUIMessageData({ categories: this.categories });
       }
@@ -281,38 +290,43 @@ export class WebsocketService {
       if (
         // Response playback actions
         response?.Device?.MediaPlayerNeXt?.Players?.Player01?.AvailableActions
-      )
-        this.reportUIMessageData({ actions: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.AvailableActions });
-
-      if (
-        // Response playback nowPlaying
-        response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.TrackTitle
-      ){
-        for (const id in response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.TrackTitle) {
-           this.nowPlaying = {
-            idnowPlaying: id,
-            trackTitle: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.TrackTitle,
-            artistName: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.ArtistName,
-            albumName: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.AlbumName,
-            stationName: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.StationName,
-            albumArtUrl: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.AlbumArtUrl,
-            trackNum: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.TrackNum,
-            trackCnt: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.TrackCnt,
-            duration: response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.Duration,
-          }
-          this.elapsedSec = response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.ElapsedSec
-        }
-        this.reportUIMessageData({ nowPlayingData: this.nowPlaying });
-        this.reportUIMessageData({ elapsedSec: this.elapsedSec });
+      ) {
+        this.mediaPlayerState.availableActions = response.Device.MediaPlayerNeXt.Players.Player01.AvailableActions as PlaybackAction;
+        this.reportUIMessageData({ mediaPlayerState: this.mediaPlayerState });
       }
 
       if (
-        // Response playback elapsedSec
-        response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.ElapsedSec
+        // Response playback nowPlaying (includes ElapsedSec)
+        response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData
       ){
-        this.elapsedSec = response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.ElapsedSec,
-        this.reportUIMessageData({ elapsedSec: this.elapsedSec });
-        console.log('elapsed', this.elapsedSec)
+        const nowPlayingDataResp = response.Device.MediaPlayerNeXt.Players.Player01.Player.NowPlayingData;
+        const currentNowPlaying: NowPlayingData = {
+          idnowPlaying: nowPlayingDataResp.idnowPlaying || this.mediaPlayerState.nowPlayingData?.idnowPlaying || uuidv1(),
+          trackTitle: nowPlayingDataResp.TrackTitle,
+          artistName: nowPlayingDataResp.ArtistName,
+          albumName: nowPlayingDataResp.AlbumName,
+          stationName: nowPlayingDataResp.StationName,
+          albumArtUrl: nowPlayingDataResp.AlbumArtUrl,
+          trackNum: nowPlayingDataResp.TrackNum,
+          trackCnt: nowPlayingDataResp.TrackCnt,
+          duration: nowPlayingDataResp.Duration,
+        };
+        this.mediaPlayerState.nowPlayingData = currentNowPlaying;
+        if (nowPlayingDataResp.ElapsedSec !== undefined) {
+          this.mediaPlayerState.elapsedSec = nowPlayingDataResp.ElapsedSec;
+        }
+        this.reportUIMessageData({ mediaPlayerState: this.mediaPlayerState });
+      }
+
+      // This specific block for ElapsedSec might be redundant if NowPlayingData always includes it
+      // However, if ElapsedSec can update independently, it's needed.
+      if (
+        response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.ElapsedSec !== undefined &&
+        this.mediaPlayerState.nowPlayingData // Only update elapsedSec if nowPlayingData is set
+      ){
+        this.mediaPlayerState.elapsedSec = response.Device.MediaPlayerNeXt.Players.Player01.Player.NowPlayingData.ElapsedSec;
+        this.reportUIMessageData({ mediaPlayerState: this.mediaPlayerState });
+        // console.log('elapsed', this.mediaPlayerState.elapsedSec); // Keep for debugging if necessary
       }
 
       if (
@@ -323,18 +337,20 @@ export class WebsocketService {
     }
   }
 
-  saveCategory(category : any){
+  saveCategory(category : CategoryItem | any){ // Updated type, though 'any' might still be needed if msg is passed
+    // This logic might need review if 'category' is now always CategoryItem
+    // and 'msg' (the raw message) was intended for backCategory
     if(this.backCategory[0] == undefined)
-      this.backCategory[0] = category
+      this.backCategory[0] = category;
     else{
       if(this.backCategory[1] == undefined)
-        this.backCategory[1] = category
+        this.backCategory[1] = category;
       else{
-        this.backCategory[0] = this.backCategory[1]
-        this.backCategory[1] = category
+        this.backCategory[0] = this.backCategory[1];
+        this.backCategory[1] = category;
       }
     }
-    console.log('browse',this.backCategory)
+    console.log('browse',this.backCategory);
   }
 
   reportUIMessageData(data: any) {

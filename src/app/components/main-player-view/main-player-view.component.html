@@ -1,0 +1,51 @@
+<div class="main-player-view-container">
+  <header class="app-header">
+    <h1>Media Player</h1>
+  </header>
+
+  <main class="content-area">
+    <div [ngSwitch]="currentView">
+      <app-profile-selection
+        *ngSwitchCase="'profiles'"
+        (providerSelected)="onProviderSelected($event)">
+      </app-profile-selection>
+
+      <app-category-navigation
+        *ngSwitchCase="'categories'"
+        [currentProviderId]="selectedProviderId"
+        (itemSelected)="onPlayableItemSelected($event)"
+        (categorySelected)="onCategoryNavigation($event)">
+      </app-category-navigation>
+
+      <!--
+        If currentView is 'player', it means a track was selected.
+        Category navigation might be hidden or shown alongside.
+        For this setup, if a track is selected (view becomes 'player'),
+        we might want to keep showing categories for further navigation,
+        or have a dedicated "now playing" view.
+        Let's assume for now that when currentView is 'player',
+        we might still want to see categories.
+      -->
+      <app-category-navigation
+        *ngSwitchCase="'player'"
+        [currentProviderId]="selectedProviderId"
+        (itemSelected)="onPlayableItemSelected($event)"
+        (categorySelected)="onCategoryNavigation($event)">
+      </app-category-navigation>
+
+    </div>
+  </main>
+
+  <footer class="player-footer" *ngIf="currentView === 'categories' || currentView === 'player'">
+    <!-- Player component is always visible at the bottom once we move past profile selection -->
+    <app-player></app-player>
+  </footer>
+
+  <!-- Alternative strategy: Player is part of the main content area when view is 'player' -->
+  <!--
+  <div *ngIf="currentView === 'player'" class="dedicated-player-area">
+    <app-player></app-player>
+  </div>
+  -->
+
+</div>
