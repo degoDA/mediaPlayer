@@ -3,8 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "cresprep": "replace-in-files --string='type=\\\"module\\\"' --replacement='defer' dist/websocket-demo/index.html",
+    "cresbuild": "yarn build && yarn cresprep",
     "start": "ng serve",
     "build": "ng build",
+    "build:archive": "ch5-cli archive -p websocket-demo -d dist/websocket-demo -o dist",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -17,8 +20,13 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@crestron/ch5-crcomlib": "^2.14.0",
+    "@crestron/ch5-utilities-cli": "^2.0.0",
+    "replace-in-files-cli": "^3.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "uuid": "^11.1.0",
+    "yarn": "^1.22.22",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
