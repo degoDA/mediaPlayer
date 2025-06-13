@@ -27,9 +27,40 @@ export class WebsocketService {
     this.socket = new WebSocket(url, protocol);
 
     this.socket.onmessage = (event) => {
-      const response = JSON.parse(event.data);
-      this.processResponse(response);
-      this.messages$.next(response);
+      console.log('[WebsocketService] Raw WebSocket message received:', event.data);
+      const rawData = event.data as string;
+
+      // Attempt to split if "}{" is found, indicating potential concatenation.
+      // This regex looks for "}" followed by optional whitespace then "{".
+      const messageParts = rawData.replace(/}\s*{/g, '}\n{').split('\n');
+
+      for (const part of messageParts) {
+        if (part.trim() === '') {
+          continue;
+        }
+        try {
+          const parsedResponse = JSON.parse(part);
+          console.log('[WebsocketService] Processing parsed message part:', parsedResponse);
+
+          // Check and correct AvailableActions if it's an object instead of an array
+          const actionsPath = parsedResponse?.Device?.MediaPlayerNeXt?.Players?.Player01?.AvailableActions;
+          if (actionsPath && typeof actionsPath === 'object' && !Array.isArray(actionsPath)) {
+            console.warn('[WebsocketService] Received AvailableActions as an object, converting to empty array. Original:', actionsPath);
+            // Ensure path to AvailableActions exists before assignment
+            if (parsedResponse.Device && parsedResponse.Device.MediaPlayerNeXt && parsedResponse.Device.MediaPlayerNeXt.Players && parsedResponse.Device.MediaPlayerNeXt.Players.Player01) {
+                parsedResponse.Device.MediaPlayerNeXt.Players.Player01.AvailableActions = [];
+            }
+          }
+
+          this.processResponse(parsedResponse);
+          this.messages$.next(parsedResponse); // Consider if this should be the original `part` on error, or structured error.
+
+        } catch (e) {
+          console.error('[WebsocketService] Error parsing JSON message part. Part:', part, 'Error:', e);
+          // Optionally, you could emit an error on messages$ or handle differently
+          // this.messages$.error(new Error(`Failed to parse message part: ${part}`));
+        }
+      }
     };
 
     this.socket.onopen = () => {
