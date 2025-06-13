@@ -65,14 +65,49 @@ export class PlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  sendPlaybackAction(action: string): void {
-    console.log('[PlayerComponent] sendPlaybackAction called with action:', action); // ADD THIS LOG
-    // Using the existing isActionAvailable helper which checks this.mediaPlayerState.availableActions
-    if (this.isActionAvailable(action)) {
-      this.websocketService.playbackAction(action);
+  sendPlaybackAction(uiAction: string): void {
+    // console.log('[PlayerComponent] sendPlaybackAction called with uiAction:', uiAction); // Removed
+
+    if (!this.isActionAvailable(uiAction)) {
+      console.warn(`[PlayerComponent] UI Action "${uiAction}" is not currently available based on backend state.`); // Kept this warn
+      return;
+    }
+
+    let backendAction: string | null = null;
+
+    switch (uiAction) {
+      case 'PlayPause':
+        if (this.mediaPlayerState?.availableActions?.includes('Pause')) {
+          backendAction = 'Pause';
+        } else if (this.mediaPlayerState?.availableActions?.includes('Play')) {
+          backendAction = 'Play';
+        }
+        break;
+      case 'Next':
+        backendAction = 'NextTrack';
+        break;
+      case 'Previous':
+        backendAction = 'PreviousTrack';
+        break;
+      case 'Shuffle':
+        backendAction = 'Shuffle';
+        break;
+      case 'Repeat':
+        backendAction = 'Repeat';
+        break;
+      default:
+        // console.error(`[PlayerComponent] Unknown uiAction "${uiAction}" in sendPlaybackAction.`); // Removed
+        // It's better to not send an action if it's unknown, or have a defined behavior.
+        // For now, backendAction will remain null and the warning below will trigger.
+        break;
+    }
+
+    if (backendAction) {
+      // console.log(`[PlayerComponent] Mapped uiAction "${uiAction}" to backendAction "${backendAction}"`); // Removed
+      this.websocketService.playbackAction(backendAction);
     } else {
-      // Updated warning to match the spirit of the prompt's example
-      console.warn(`[PlayerComponent] Action ${action} is not available or button should be disabled.`);
+      // This warning is useful if isActionAvailable was true but no mapping was found (e.g. PlayPause logic issue)
+      console.warn(`[PlayerComponent] No backendAction determined for uiAction "${uiAction}".`);
     }
   }
 
@@ -115,46 +150,58 @@ export class PlayerComponent implements OnInit, OnDestroy {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   }
 
-  // Helper to check action availability for buttons
-  isActionAvailable(action: string): boolean {
-    console.log(`[PlayerComponent] isActionAvailable called for action: "${action}"`);
-    console.log('[PlayerComponent] Current mediaPlayerState.availableActions:', this.mediaPlayerState?.availableActions);
+  get isCurrentlyPausable(): boolean {
+    return this.mediaPlayerState?.availableActions?.includes('Pause') || false;
+  }
 
-    if (!this.mediaPlayerState?.availableActions) {
-      console.log('[PlayerComponent] availableActions is undefined or null, typically meaning all actions are disabled or state is unknown.');
-      // If availableActions is not defined, it's safer to assume actions are not available,
-      // unless 'PlayPause' has special handling when a track is loaded but no actions specified.
-      // However, the template uses this to *disable* buttons, so returning false makes them disabled.
-      // The original logic was `return true` (optimistically enable).
-      // Let's stick to disabling if unknown, except for perhaps a very specific PlayPause.
-      // For now, if no availableActions, assume no actions are available from backend.
-      return false;
+  // Optional: isCurrentlyPlayable, if backend sends 'Play' when paused
+  // get isCurrentlyPlayable(): boolean {
+  //   return this.mediaPlayerState?.availableActions?.includes('Play') || false;
+  // }
+
+  isActionAvailable(uiAction: string): boolean {
+    // console.log(`[PlayerComponent] isActionAvailable called for uiAction: "${uiAction}"`); // Removed
+    const backendActions = Array.isArray(this.mediaPlayerState?.availableActions)
+      ? this.mediaPlayerState.availableActions
+      : [];
+    // console.log('[PlayerComponent] Current backend availableActions (treated as array):', backendActions); // Removed
+
+    if (!this.mediaPlayerState || (backendActions.length === 0 && uiAction !== 'PlayPause')) {
+        // console.log('[PlayerComponent] No mediaPlayerState or availableActions is effectively empty for non-PlayPause actions.'); // Removed
+        if (uiAction === 'PlayPause' && this.mediaPlayerState?.nowPlayingData) {
+          // Allow PlayPause check to proceed if a track is loaded, even if backendActions is empty.
+          // This assumes 'Play' might be a default implicit action.
+        } else {
+            return false;
+        }
     }
 
-    // Specific handling for 'PlayPause' as it's a common UI toggle
-    // that might map to 'Play' or 'Pause' actions from the backend.
-    if (action === 'PlayPause') {
-       const canPlay = this.mediaPlayerState.availableActions.hasOwnProperty('Play') && (this.mediaPlayerState.availableActions as any)['Play'] === true;
-       const canPause = this.mediaPlayerState.availableActions.hasOwnProperty('Pause') && (this.mediaPlayerState.availableActions as any)['Pause'] === true;
-       console.log(`[PlayerComponent] For PlayPause: has 'Play' action = ${canPlay}, has 'Pause' action = ${canPause}`);
-       // The PlayPause button is enabled if either 'Play' or 'Pause' action is available.
-       // The actual icon/text on the button might change based on current player state (e.g. isPlaying),
-       // but this method just determines if the button itself is interactive.
-       return canPlay || canPause;
+    switch (uiAction) {
+      case 'PlayPause':
+        const canPlay = backendActions.includes('Play');
+        const canPause = backendActions.includes('Pause');
+        // console.log(`[PlayerComponent] For PlayPause: backend has 'Play'=${canPlay}, backend has 'Pause'=${canPause}`); // Removed
+        return (this.mediaPlayerState?.nowPlayingData && (canPlay || canPause)) ||
+               (this.mediaPlayerState?.nowPlayingData && backendActions.length === 0); // Tentatively enable PlayPause if a track is loaded and no actions specified
+      case 'Next':
+        const canNext = backendActions.includes('NextTrack');
+        // console.log(`[PlayerComponent] For Next: backend has 'NextTrack'=${canNext}`); // Removed
+        return canNext;
+      case 'Previous':
+        const canPrev = backendActions.includes('PreviousTrack');
+        // console.log(`[PlayerComponent] For Previous: backend has 'PreviousTrack'=${canPrev}`); // Removed
+        return canPrev;
+      case 'Shuffle':
+        const canShuffle = backendActions.includes('Shuffle');
+        // console.log(`[PlayerComponent] For Shuffle: backend has 'Shuffle'=${canShuffle}`); // Removed
+        return canShuffle;
+      case 'Repeat':
+        const canRepeat = backendActions.includes('Repeat');
+        // console.log(`[PlayerComponent] For Repeat: backend has 'Repeat'=${canRepeat}`); // Removed
+        return canRepeat;
+      default:
+        // console.log(`[PlayerComponent] Unknown uiAction "${uiAction}" in isActionAvailable.`); // Removed
+        return false;
     }
-
-    // For other actions like Next, Previous, Shuffle, Repeat
-    const hasAction = this.mediaPlayerState.availableActions.hasOwnProperty(action);
-    const isActionTrue = hasAction && (this.mediaPlayerState.availableActions as any)[action] === true;
-
-    console.log(`[PlayerComponent] mediaPlayerState.availableActions.hasOwnProperty("${action}"):`, hasAction);
-    if(hasAction) {
-      console.log(`[PlayerComponent] Value of action "${action}":`, (this.mediaPlayerState.availableActions as any)[action]);
-    }
-    // Action is available if the key exists AND its value is true.
-    // Or if the key exists and it's not explicitly false (some backends might just list available actions without true/false)
-    // For this implementation, we assume if key exists, it implies availability (true), unless it's explicitly false.
-    // The prompt for PlaybackAction interface suggested boolean flags, so `=== true` is safer.
-    return isActionTrue;
   }
 }

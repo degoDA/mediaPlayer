@@ -31,32 +31,36 @@
   <div class="controls-section playback-controls"> <!-- Assuming playback-controls is the class for this section -->
     <div class="buttons-container">
       <button class="control-button" (click)="sendPlaybackAction('Previous')" [disabled]="!isActionAvailable('Previous')" aria-label="Previous Track">
-        &laquo; <!-- Previous Icon -->
+        &#x23EE; <!-- Previous Track icon -->
       </button>
 
-      <button class="control-button play-pause" (click)="sendPlaybackAction('PlayPause')" [disabled]="!isActionAvailable('PlayPause')" aria-label="Play or Pause">
-        &#9658;/|| <!-- Placeholder for Play/Pause Icon -->
+      <button class="control-button play-pause"
+              (click)="sendPlaybackAction('PlayPause')"
+              [disabled]="!isActionAvailable('PlayPause')"
+              aria-label="Play or Pause">
+        <span *ngIf="isCurrentlyPausable">&#x23F8;</span> <!-- Pause Icon -->
+        <span *ngIf="!isCurrentlyPausable">&#x25B6;</span> <!-- Play Icon -->
       </button>
 
       <button class="control-button" (click)="sendPlaybackAction('Next')" [disabled]="!isActionAvailable('Next')" aria-label="Next Track">
-        &raquo; <!-- Next Icon -->
+        &#x23ED; <!-- Next Track icon -->
       </button>
     </div>
 
-    <div class="secondary-buttons-container" *ngIf="mediaPlayerState?.availableActions">
-        <button *ngIf="mediaPlayerState?.availableActions?.hasOwnProperty('Shuffle')"
+    <div class="secondary-buttons-container" *ngIf="mediaPlayerState?.availableActions && mediaPlayerState.availableActions.length > 0">
+        <button *ngIf="isActionAvailable('Shuffle')"
                 class="control-button secondary"
                 (click)="sendPlaybackAction('Shuffle')"
-                [class.active]="mediaPlayerState?.availableActions?.Shuffle === true"
+                [class.active]="mediaPlayerState?.availableActions?.includes('Shuffle')"
                 aria-label="Shuffle">
-          Shuffle
+          &#x1F500; <!-- Shuffle icon -->
         </button>
-        <button *ngIf="mediaPlayerState?.availableActions?.hasOwnProperty('Repeat')"
+        <button *ngIf="isActionAvailable('Repeat')"
                 class="control-button secondary"
                 (click)="sendPlaybackAction('Repeat')"
-                [class.active]="mediaPlayerState?.availableActions?.Repeat === true"
+                [class.active]="mediaPlayerState?.availableActions?.includes('Repeat')"
                 aria-label="Repeat">
-          Repeat
+          &#x1F501; <!-- Repeat icon -->
         </button>
     </div>
   </div>

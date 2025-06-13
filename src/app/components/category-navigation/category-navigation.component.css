@@ -34,7 +34,7 @@
 
 
 .back-button-catnav { /* Different class for specific styling if needed */
-  padding: 8px 12px;
+  padding: 8px 15px; /* Standardized padding */
   font-size: 0.9em; /* Adjusted from 1em in original back-button */
   background-color: var(--button-background-color);
   color: var(--button-text-color);
