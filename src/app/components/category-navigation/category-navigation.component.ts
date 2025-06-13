@@ -73,10 +73,22 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
     }
     // Else, if it's a directly playable type (like a Track or a Station)
     else if (this.playableMediaTypes.some(type => mediaType?.includes(type.toLowerCase()))) {
-      // We assume CategoryItem has enough data for playback, or can be cast to MediaItem.
-      // This might require mapping if structures are different.
-      this.itemSelected.emit(category as MediaItem); // Casting, ensure compatibility
-      this.websocketService.playback(category); // Tell service to play this item
+      const playableItem: MediaItem = {
+        idMedia: category.idCategorie, // Assuming idCategorie can serve as a unique ID for media
+        itemName: category.browseItemName,
+        signedData: category.signedData,
+        urlIcon: category.urlIcon, // Optional in MediaItem, so it's fine if category.urlIcon is undefined
+        browseKey: category.browseKey, // Crucial for playback
+        providerKey: category.providerKey,
+        mediaType: category.streamingMediaType // This maps directly for now, could be refined
+                                              // e.g., map 'Station' to 'Track' or a generic 'Playable' if MediaItem.mediaType has stricter enum
+      };
+
+      this.itemSelected.emit(playableItem);
+      // Ensure this.websocketService.playback can handle a MediaItem.
+      // The WebsocketService was updated to playback(item: CategoryItem | MediaItem)
+      this.websocketService.playback(playableItem);
+      this.currentTitle = playableItem.itemName; // Update title with consistent item name
     }
     // Fallback for types not explicitly handled: attempt to browse.
     else {

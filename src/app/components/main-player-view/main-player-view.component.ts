@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { environment } from '../../environments/environment'; // Correct import for environment
+import { environment } from '../../../environments/environment'; // Corrected import path
 
 // Assuming environment.ts exists and has these properties.
 // In a real Angular app, this would be: import { environment } from '../../../environments/environment';

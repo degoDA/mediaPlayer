@@ -10,7 +10,7 @@
     <div *ngFor="let category of categories" class="category-item" (click)="selectCategory(category)" [attr.aria-label]="'Select ' + category.browseItemName">
       <img *ngIf="category.urlIcon" [src]="category.urlIcon" alt="{{ category.browseItemName }} icon" class="category-icon">
       <div class="category-info">
-        <span class.category-name>{{ category.browseItemName }}</span>
+        <span class="category-name">{{ category.browseItemName }}</span>
         <small *ngIf="category.streamingMediaType" class="category-type">{{ category.streamingMediaType }}</small>
       </div>
       <!-- Simple indicator for browsable vs playable, could be an icon -->
