@@ -1,102 +1,121 @@
 .category-navigation-container {
-  font-family: Arial, sans-serif;
   padding: 15px;
-  border: 1px solid #e0e0e0;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+  /* background-color: var(--background-color); /* Inherits */
 }
 
-.header {
+/* Styles for the main title of the category navigation section */
+.category-navigation-container h2 {
+  color: var(--on-background-text-color);
+  margin-top: 0; /* Adjusted from prompt, original CSS had this for .header h2 */
+  margin-bottom: 15px;
+  text-align: center; /* Added from prompt */
+  font-size: 1.5em; /* Copied from original .header h2 style */
+}
+
+/* This replaces the old .header style for this component */
+.category-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
 }
 
-.header h2 {
+/* Ensuring the title within the flex header is styled if needed, though the h2 above might be the main title */
+.category-header .category-title-in-header { /* New class if there's a title *inside* this flex header */
   margin: 0;
-  color: #333;
-  font-size: 1.5em;
+  color: var(--on-background-text-color); /* Matching overall heading color */
+  font-size: 1.2em; /* Slightly smaller if it's a sub-header for the back button line */
 }
 
-.back-button {
-  background-color: #6c757d;
-  color: white;
-  border: none;
+
+.back-button-catnav { /* Different class for specific styling if needed */
   padding: 8px 12px;
-  text-align: center;
-  text-decoration: none;
-  font-size: 1em;
+  font-size: 0.9em; /* Adjusted from 1em in original back-button */
+  background-color: var(--button-background-color);
+  color: var(--button-text-color);
+  border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease; /* Added from original back-button */
 }
 
-.back-button:hover {
-  background-color: #5a6268;
+.back-button-catnav:hover {
+  background-color: var(--button-hover-background-color);
 }
 
-.back-button:disabled {
-  background-color: #cccccc;
+.back-button-catnav:disabled { /* Added from original back-button for consistency */
+  background-color: var(--border-color); /* Muted background */
+  color: var(--secondary-text-color);
   cursor: not-allowed;
   opacity: 0.7;
 }
 
+
 .category-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  /* list-style: none; /* Not needed if not using <ul> or <ol> */
+  padding: 0;
+  margin: 0;
+  display: flex; /* Added from original category-list for consistency if items were flexed */
+  flex-direction: column; /* Added from original */
+  gap: 10px; /* Added from original */
 }
 
 .category-item {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #fff;
+  background-color: var(--surface-color);
+  color: var(--on-surface-text-color);
+  padding: 12px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  margin-bottom: 10px; /* Kept from prompt, original used gap on parent */
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
 }
 
 .category-item:hover {
-  background-color: #f0f0f0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: var(--accent-color-hover); /* Or a slightly lighter surface */
+  color: var(--on-primary-text-color); /* Text color change on hover for contrast */
+  box-shadow: var(--card-hover-box-shadow); /* Using card shadow for consistency */
 }
 
 .category-icon {
   width: 40px;
   height: 40px;
   margin-right: 15px;
-  object-fit: cover;
   border-radius: 4px;
+  object-fit: cover;
+  background-color: var(--border-color);
 }
 
-.category-info {
+.category-details { /* Renamed from category-info for clarity if needed */
   flex-grow: 1;
 }
 
 .category-name {
-  font-size: 1.1em;
-  color: #007bff;
   font-weight: bold;
+  font-size: 1.05em; /* Slightly adjusted from 1.1em in original */
+  /* color: var(--on-surface-text-color); /* Inherited from .category-item */
 }
 
 .category-type {
   font-size: 0.8em;
-  color: #555;
-  display: block;
-  margin-top: 2px;
+  color: var(--secondary-text-color);
+  /* margin-left: 5px; /* Kept from prompt */
+  display: block; /* Added from original */
+  margin-top: 2px; /* Added from original */
 }
 
 .indicator {
+  margin-left: auto; /* Pushes to the right */
   font-size: 1.2em;
-  color: #007bff;
-  margin-left: 10px;
+  color: var(--primary-color);
 }
 
-p {
-  color: #555;
+/* Message for no categories */
+.category-navigation-container p {
+  color: var(--secondary-text-color);
   text-align: center;
   margin-top: 20px;
+  font-style: italic;
 }

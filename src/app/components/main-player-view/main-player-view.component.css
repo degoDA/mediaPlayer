@@ -1,67 +1,46 @@
-.main-player-view-container {
+.main-player-container { /* Changed from .main-player-view-container to match HTML if needed */
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Full viewport height */
-  font-family: Arial, sans-serif;
-  background-color: #f0f2f5; /* Light background for the whole page */
+  min-height: 100vh; /* Full viewport height */
+  background-color: var(--background-color); /* Use CSS variable */
 }
 
-.app-header {
-  background-color: #007bff; /* Primary color for header */
-  color: white;
+.player-header { /* Changed from .app-header to match HTML if needed */
+  background-color: var(--surface-color); /* Use CSS variable */
+  color: var(--on-surface-text-color); /* Use CSS variable */
   padding: 15px 20px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Darker shadow */
 }
 
-.app-header h1 {
+.player-header h2 { /* Or h1, depending on the HTML */
   margin: 0;
-  font-size: 1.8em;
+  color: var(--on-surface-text-color); /* Ensure header text color */
 }
 
 .content-area {
-  flex-grow: 1; /* Takes up available space between header and footer */
+  flex-grow: 1;
   padding: 20px;
-  overflow-y: auto; /* Allows content to scroll if it overflows */
-  background-color: #ffffff; /* White background for content */
-  margin: 10px; /* Small margin around content area */
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-/* Specific styling for child components if needed, or they manage their own internal styles */
-app-profile-selection, app-category-navigation {
-  display: block; /* Ensure they take up block space */
-  margin-bottom: 15px; /* Spacing between components if stacked */
+  /* background-color: var(--background-color); /* Already on body via .main-player-container */
 }
 
 .player-footer {
-  background-color: #ffffff; /* Player background */
+  background-color: var(--surface-color); /* Use CSS variable */
   padding: 10px;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* Shadow above the player */
-  border-top: 1px solid #e0e0e0;
-  /* position: sticky; bottom: 0; /* Sticks player to bottom, if desired and content scrolls */
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.2); /* Shadow on top */
+  border-top: 1px solid var(--border-color);
 }
 
-/* If using a dedicated player area instead of footer */
-.dedicated-player-area {
-  padding: 20px;
-  margin-top: 10px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-/* Basic responsive consideration */
-@media (max-width: 768px) {
+/* Remove responsive rules if they are not needed or handled globally */
+/* @media (max-width: 768px) {
   .content-area {
     padding: 15px;
     margin: 5px;
   }
-  .app-header h1 {
+  .player-header h2 {
     font-size: 1.5em;
   }
   .player-footer {
     padding: 5px;
   }
-}
+} */

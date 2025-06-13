@@ -7,6 +7,7 @@
     <div [ngSwitch]="currentView">
       <app-profile-selection
         *ngSwitchCase="'profiles'"
+        [autoSelectProfileId]="activeProfileIdForServiceView"
         (providerSelected)="onProviderSelected($event)">
       </app-profile-selection>
 
@@ -14,7 +15,8 @@
         *ngSwitchCase="'categories'"
         [currentProviderId]="selectedProviderId"
         (itemSelected)="onPlayableItemSelected($event)"
-        (categorySelected)="onCategoryNavigation($event)">
+        (categorySelected)="onCategoryNavigation($event)"
+        (returnToServiceSelection)="onReturnToServiceSelection()">
       </app-category-navigation>
 
       <!--
@@ -30,7 +32,8 @@
         *ngSwitchCase="'player'"
         [currentProviderId]="selectedProviderId"
         (itemSelected)="onPlayableItemSelected($event)"
-        (categorySelected)="onCategoryNavigation($event)">
+        (categorySelected)="onCategoryNavigation($event)"
+        (returnToServiceSelection)="onReturnToServiceSelection()">
       </app-category-navigation>
 
     </div>

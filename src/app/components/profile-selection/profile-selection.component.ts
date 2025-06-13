@@ -12,7 +12,8 @@ import { Profile, Provider } from '../../interfaces/profile.interface';
   styleUrls: ['./profile-selection.component.css']
 })
 export class ProfileSelectionComponent implements OnInit, OnDestroy {
-  @Output() providerSelected = new EventEmitter<string>();
+  @Output() providerSelected = new EventEmitter<{ providerId: string, profile: Profile }>();
+  @Input() autoSelectProfileId?: string;
   profiles: Profile[] = [];
   selectedProfile?: Profile;
   servicesForSelectedProfile: Provider[] = [];
@@ -22,12 +23,27 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
-      if (data && data.profiles) {
+      if (data.profiles) {
         this.profiles = data.profiles;
+        if (this.autoSelectProfileId && !this.selectedProfile) { // Check !this.selectedProfile to avoid re-selecting if already in service view
+          const profileToSelect = this.profiles.find(p => p.idProfile === this.autoSelectProfileId);
+          if (profileToSelect) {
+            this.selectProfile(profileToSelect);
+          }
+        }
       }
     });
-    // Request profiles when component initializes
-    this.websocketService.streamingProviders();
+
+    // Initial fetch logic
+    if (this.profiles.length === 0) { // Fetch if profiles are not loaded
+        this.websocketService.streamingProviders();
+    } else if (this.autoSelectProfileId && !this.selectedProfile) {
+        // Profiles are loaded, but we need to auto-select and are not yet in service view
+        const profileToSelect = this.profiles.find(p => p.idProfile === this.autoSelectProfileId);
+        if (profileToSelect) {
+          this.selectProfile(profileToSelect);
+        }
+    }
   }
 
   ngOnDestroy(): void {
@@ -39,19 +55,21 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   selectProfile(profile: Profile): void {
     this.selectedProfile = profile;
     this.servicesForSelectedProfile = profile.providers || [];
+    // this.autoSelectProfileId = undefined; // Let parent control this input
   }
 
   selectService(provider: Provider | undefined): void {
-    if (provider && provider.idService) {
-      this.providerSelected.emit(provider.idService);
+    if (provider && provider.idService && this.selectedProfile) { // Ensure selectedProfile is set
+      this.providerSelected.emit({ providerId: provider.idService, profile: this.selectedProfile });
       this.websocketService.browseProvider(provider.idService);
     } else {
-      console.warn('Attempted to select an undefined provider or provider with no idService.');
+      console.warn('Attempted to select an undefined provider, provider with no idService, or selectedProfile is not set.');
     }
   }
 
   showProfiles(): void {
     this.selectedProfile = undefined;
     this.servicesForSelectedProfile = [];
+    // this.autoSelectProfileId = undefined; // Let parent control this input
   }
 }

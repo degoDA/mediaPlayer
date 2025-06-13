@@ -6,7 +6,7 @@
       <div *ngIf="profiles.length === 0" class="loading-message">
         Loading profiles or no profiles found...
       </div>
-      <div class="card profile-card" *ngFor="let profile of profiles" (click)="selectProfile(profile)">
+      <div class="card profile-card" *ngFor="let profile of profiles" (click)="selectProfile(profile)" tabindex="0">
         <div class="card-content">
           <h3 class="card-title">{{ profile.name }}</h3>
           <!-- Optional: could show number of providers if desired -->
@@ -24,7 +24,7 @@
       <div *ngIf="servicesForSelectedProfile.length === 0" class="no-services-message">
         No services found for this profile.
       </div>
-      <div class="card service-card" *ngFor="let provider of servicesForSelectedProfile" (click)="selectService(provider)">
+      <div class="card service-card" *ngFor="let provider of servicesForSelectedProfile" (click)="selectService(provider)" tabindex="0">
         <div class="card-content">
           <h3 class="card-title">{{ provider.name }}</h3>
         </div>

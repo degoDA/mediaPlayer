@@ -16,6 +16,7 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
   @Input() currentProviderId?: string; // May not be directly used if ProfileSelection handles initial browse
   @Output() itemSelected = new EventEmitter<CategoryItem | MediaItem>();
   @Output() categorySelected = new EventEmitter<CategoryItem>();
+  @Output() returnToServiceSelection = new EventEmitter<void>();
 
   categories: CategoryItem[] = [];
   private uiSubscription!: Subscription;
@@ -100,19 +101,17 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.websocketService.selectBackCategory();
-    // Title update after going back might need to be handled by data received from websocketService,
-    // or by managing a title history. For now, it will update when new categories are received.
+    if (!this.websocketService.selectBackCategory()) {
+      // If selectBackCategory returns false (WebSocket service cannot go back further in its own history)
+      this.returnToServiceSelection.emit();
+    }
+    // If selectBackCategory() returned true, the WebsocketService handled the back navigation
+    // and will trigger a new data emission that the component's subscription will pick up.
   }
 
-  // Helper to check if the back button should be disabled.
-  // This is a simple check; a more robust solution might involve tracking browse depth.
   get isAtRootLevel(): boolean {
-    // This is a placeholder. `this.websocketService.backCategory` is not directly accessible here.
-    // We need a way for the component to know if a "back" operation is possible.
-    // This could be a boolean flag updated by the websocket service or based on category depth.
-    // For now, let's assume it's true if categories are empty or it's the initial load.
-    // A more sophisticated check would involve the websocketService exposing state about back history.
-    return this.websocketService.backCategory[0] === undefined;
+    // This getter now indicates if the WebSocket service has no more history.
+    // If true, the goBack() method will emit 'returnToServiceSelection'.
+    return !this.websocketService.canNavigateBackInCategory;
   }
 }

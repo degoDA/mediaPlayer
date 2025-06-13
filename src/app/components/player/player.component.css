@@ -1,155 +1,218 @@
-.player-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  margin: 20px auto;
+.player-component {
+  padding: 15px;
+  background-color: var(--surface-color); /* Player distinct background */
+  border-top: 1px solid var(--border-color);
+  color: var(--on-surface-text-color);
 }
 
-.album-art img {
-  width: 250px;
-  height: 250px;
-  border-radius: 6px;
-  object-fit: cover;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.track-info {
+/* Fallback for no track message, and other general paragraphs if not more specific */
+.player-component p:not(.track-title-text):not(.artist-name-text):not(.album-name-text):not(.station-name-text) {
   text-align: center;
-  margin-bottom: 20px;
+  color: var(--secondary-text-color);
+  padding: 20px 0;
 }
 
-.track-title {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #333;
-  margin: 0 0 5px 0;
-}
-
-.artist-name, .album-name, .station-name {
-  font-size: 1em;
-  color: #555;
-  margin: 3px 0;
-}
-
-.station-name {
-  font-style: italic;
-}
-
-.playback-controls {
-  width: 100%;
-}
-
-.progress-bar-container {
+.now-playing-info-flex-container {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  align-items: center; /* Center items vertically better for player */
+  gap: 15px;
   margin-bottom: 15px;
 }
 
-.time-elapsed, .time-total {
-  font-size: 0.85em;
-  color: #666;
+.album-art-wrapper {
+  flex-shrink: 0;
 }
 
-.playback-progress {
-  flex-grow: 1;
-  height: 8px;
-  margin: 0 10px;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-/* Styling for WebKit (Chrome, Safari) */
-.playback-progress::-webkit-progress-bar {
-  background-color: #e0e0e0;
+.album-art-img {
+  width: 80px; /* Slightly smaller for typical player */
+  height: 80px;
+  object-fit: cover;
   border-radius: 4px;
+  display: block;
 }
 
-.playback-progress::-webkit-progress-value {
-  background-color: #007bff;
-  border-radius: 4px;
-  transition: width 0.1s linear;
-}
-
-/* Styling for Firefox */
-.playback-progress::-moz-progress-bar {
-  background-color: #007bff;
-  border-radius: 4px;
-  transition: width 0.1s linear;
-}
-
-.buttons-container {
+.album-art-placeholder-text {
+  width: 80px;
+  height: 80px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 15px;
+  justify-content: center;
+  background-color: var(--background-color); /* Darker placeholder bg */
+  color: var(--secondary-text-color);
+  border-radius: 4px;
+  font-size: 0.8em;
+}
+
+.track-details-text-wrapper {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.track-details-text-wrapper h3,
+.track-details-text-wrapper p {
+  margin-top: 0;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--on-surface-text-color); /* Ensure text color on surface */
+}
+
+.track-title-text {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: var(--primary-color); /* Title highlighted */
+}
+
+.artist-name-text,
+.album-name-text,
+.station-name-text {
+  font-size: 0.85em;
+  color: var(--secondary-text-color); /* Muted for details */
+}
+
+.progress-section { /* This class wraps progress-bar-container and time-display */
   margin-bottom: 10px;
 }
 
-.control-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 50%; /* Circular buttons */
-  width: 50px;
-  height: 50px;
-  font-size: 1.5em; /* For icon text */
-  display: flex;
+.progress-bar-container { /* This specifically is for the progress element itself if it's a direct wrapper */
+  width: 100%;
+  /* background-color: var(--background-color); /* Track for progress - moved to progress element for better control */
+  /* border-radius: 4px; */
+  /* padding: 2px; */
+  height: 10px; /* Explicit height for the area containing progress */
+  display: flex; /* If time-elapsed/total are outside the progress element but inside this */
   align-items: center;
+}
+
+/* Styling the actual progress element */
+.playback-progress { /* Assuming this class is on the <progress> element */
+  width: 100%;
+  height: 8px; /* Height of actual progress fill */
+  appearance: none; /* Essential for custom styling */
+  -webkit-appearance: none; /* For Safari/Chrome */
+  border: none; /* Remove default border */
+  border-radius: 4px;
+  background-color: var(--background-color); /* Track color */
+}
+
+/* Webkit browsers */
+.playback-progress::-webkit-progress-bar {
+  background-color: var(--background-color); /* Track color */
+  border-radius: 4px;
+}
+.playback-progress::-webkit-progress-value {
+  background-color: var(--primary-color); /* Fill color */
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+/* Firefox */
+.playback-progress::-moz-progress-bar { /* Just the fill part for FF */
+  background-color: var(--primary-color); /* Fill color */
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+.time-elapsed, .time-total { /* These were siblings of progress bar in HTML */
+    font-size: 0.8em;
+    color: var(--secondary-text-color);
+    margin: 0 5px; /* Add some margin if they are direct children of progress-bar-container */
+}
+/* If .time-display is a wrapper for these, style .time-display instead */
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  color: var(--secondary-text-color);
+  margin-top: 3px; /* Space above time if it's below progress bar */
+}
+
+
+.controls-section { /* This class wraps buttons-container and secondary-buttons-container */
+  display: flex;
+  flex-direction: column; /* To stack main and secondary controls */
+  align-items: center; /* Center them horizontally */
+  gap: 10px; /* Space between main and secondary controls */
+}
+
+.buttons-container { /* For main Play/Pause, Next, Prev */
+  display: flex;
   justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  align-items: center;
+  gap: 15px; /* Increased gap for main controls */
 }
 
-.control-button:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.control-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.control-button.play-pause {
-  width: 60px; /* Larger for play/pause */
-  height: 60px;
-  font-size: 2em;
-}
-
-.secondary-buttons-container {
+.secondary-buttons-container { /* For Shuffle, Repeat */
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 10px;
 }
 
-.control-button.secondary {
-  width: auto; /* Auto width for text buttons */
-  height: 35px;
-  font-size: 0.9em;
+
+.control-button { /* Style for Play/Pause, Next, Prev */
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 50%;
+  width: 45px; /* Adjusted size */
+  height: 45px;
+  font-size: 1.3em; /* Adjusted icon size */
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.control-button.play-pause { /* Specific for play-pause if larger */
+    width: 55px;
+    height: 55px;
+    font-size: 1.8em;
+}
+
+
+.control-button.secondary { /* Style for Shuffle, Repeat */
+  background-color: transparent;
+  color: var(--on-surface-text-color); /* Different base color for secondary */
+  border: 1px solid var(--border-color); /* Muted border */
   border-radius: 20px; /* Pill shape */
-  padding: 0 15px;
-  background-color: #6c757d;
+  padding: 5px 15px; /* Padding for text */
+  font-size: 0.85em;
+  height: auto; /* Auto height based on padding */
+  width: auto;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
+.control-button:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: var(--on-primary-text-color);
+  border-color: var(--primary-color); /* Ensure border matches on hover */
+}
 .control-button.secondary:hover:not(:disabled) {
-  background-color: #545b62;
+  background-color: var(--accent-color-hover);
+  color: var(--on-primary-text-color);
+  border-color: var(--accent-color-hover);
+}
+.control-button.secondary.active { /* For active state like Shuffle on */
+    background-color: var(--primary-color);
+    color: var(--on-primary-text-color);
+    border-color: var(--primary-color);
 }
 
-.control-button.secondary.active {
-  background-color: #28a745; /* Green for active state */
+
+.control-button:disabled {
+  color: var(--border-color);
+  border-color: var(--border-color);
+  cursor: not-allowed;
+  background-color: transparent;
+}
+.control-button.secondary:disabled {
+    color: var(--border-color);
+    border-color: var(--border-color);
+    cursor: not-allowed;
+    background-color: transparent;
 }
 
-.player-container p { /* For the "No track playing" message */
-  color: #777;
-  font-size: 1em;
-}
+/* Removed .secondary-controls as .controls-section now handles its children (buttons-container, secondary-buttons-container) */
+/* Removed .secondary-control-button as .control-button.secondary serves this purpose */

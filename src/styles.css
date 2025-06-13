@@ -1,1 +1,55 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --background-color: #282c34;
+  --surface-color: #3c4048;
+  --primary-color: #61dafb;
+  --on-background-text-color: #abb2bf;
+  --on-surface-text-color: #e0e0e0; /* Using off-white for softer text */
+  --on-primary-text-color: #20232a;
+  --secondary-text-color: #8e9aaf;
+  --accent-color-hover: #52c5e8;
+  --border-color: #4a4e58;
+
+  /* Component-level variables based on the palette */
+  --button-text-color: var(--on-primary-text-color);
+  --button-background-color: var(--primary-color);
+  --button-hover-background-color: var(--accent-color-hover);
+
+  --card-background-color: var(--surface-color);
+  --card-border-color: var(--border-color);
+  --card-text-color: var(--on-surface-text-color);
+  --card-title-color: var(--primary-color); /* Making titles stand out a bit */
+  --card-box-shadow: 0 2px 4px rgba(0,0,0,0.25); /* Darker shadow for dark theme */
+  --card-hover-box-shadow: 0 4px 8px rgba(0,0,0,0.35);
+
+  --link-color: var(--primary-color);
+  --link-hover-color: var(--accent-color-hover);
+
+  --input-background-color: var(--surface-color);
+  --input-text-color: var(--on-surface-text-color);
+  --input-border-color: var(--border-color);
+
+  /* Focus styling variables */
+  --primary-color-rgb: 97, 218, 251; /* RGB for --primary-color: #61dafb */
+  --focus-outline-color: var(--primary-color);
+}
+
+/* General focus style for buttons and clickable card-like elements */
+button:focus-visible,
+.card:focus-visible, /* If cards are made focusable, e.g. with tabindex="0" */
+.category-item:focus-visible { /* For category list items */
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px; /* Small offset so outline doesn't overlap element too much */
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.3); /* Softer glow */
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--on-background-text-color);
+  font-family: Arial, sans-serif; /* Keep existing or suggest a new one */
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--on-background-text-color); /* Default heading color */
+}

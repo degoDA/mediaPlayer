@@ -1,13 +1,13 @@
 <div class="category-navigation-container">
   <div class="header">
     <h2>{{ currentTitle }}</h2>
-    <button (click)="goBack()" [disabled]="isAtRootLevel" class="back-button">
+    <button (click)="goBack()" class="back-button">
       &larr; Back
     </button>
   </div>
 
   <div *ngIf="categories && categories.length > 0; else noCategories" class="category-list">
-    <div *ngFor="let category of categories" class="category-item" (click)="selectCategory(category)" [attr.aria-label]="'Select ' + category.browseItemName">
+    <div *ngFor="let category of categories" class="category-item" (click)="selectCategory(category)" [attr.aria-label]="'Select ' + category.browseItemName" tabindex="0">
       <img *ngIf="category.urlIcon" [src]="category.urlIcon" alt="{{ category.browseItemName }} icon" class="category-icon">
       <div class="category-info">
         <span class="category-name">{{ category.browseItemName }}</span>

@@ -40,6 +40,7 @@ export class MainPlayerViewComponent implements OnInit {
   // showPlayer = false;
 
   selectedProviderId?: string;
+  activeProfileIdForServiceView?: string; // Added property
   selectedPlayableItem?: MediaItem | CategoryItem;
 
   constructor(private websocketService: WebsocketService) {
@@ -53,11 +54,14 @@ export class MainPlayerViewComponent implements OnInit {
     this.websocketService.connect(environment.webSocketUrl, environment.webSocketProtocol);
   }
 
-  onProviderSelected(providerId: string): void {
-    this.selectedProviderId = providerId;
+  onProviderSelected(data: { providerId: string, profile: Profile }): void { // Signature updated
+    this.selectedProviderId = data.providerId;
+    if (data.profile && data.profile.idProfile) {
+      this.activeProfileIdForServiceView = data.profile.idProfile;
+    }
     this.currentView = 'categories';
     // ProfileSelectionComponent already calls browseProvider
-    console.log('Provider selected in main view:', providerId);
+    console.log('Provider selected in main view:', data.providerId);
   }
 
   onPlayableItemSelected(item: MediaItem | CategoryItem): void {
@@ -73,5 +77,11 @@ export class MainPlayerViewComponent implements OnInit {
     // The view should remain 'categories'.
     this.currentView = 'categories'; // Ensure view is categories
     console.log('Navigating to category in main view:', category.browseItemName);
+  }
+
+  onReturnToServiceSelection(): void {
+    // activeProfileIdForServiceView should still hold the ID of the profile whose services we want to see.
+    // ProfileSelectionComponent will use this via its autoSelectProfileId input.
+    this.currentView = 'profiles';
   }
 }

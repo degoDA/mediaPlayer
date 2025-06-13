@@ -1,10 +1,10 @@
 .profile-selection-container {
   padding: 20px;
-  font-family: Arial, sans-serif;
+  /* font-family: Arial, sans-serif; /* Inherits from body */
 }
 
-h2 {
-  color: #333;
+.profile-selection-container h2 {
+  color: var(--on-background-text-color); /* Use CSS variable */
   margin-bottom: 20px;
   text-align: center;
 }
@@ -12,39 +12,35 @@ h2 {
 .cards-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px; /* Space between cards */
-  justify-content: center; /* Center cards in the container */
+  gap: 20px;
+  justify-content: center;
 }
 
 .card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--card-border-color); /* Use CSS variable */
   border-radius: 8px;
   padding: 15px;
-  width: 200px; /* Fixed width for cards, adjust as needed */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  width: 200px;
+  box-shadow: var(--card-box-shadow);
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  background-color: #fff;
-  display: flex; /* For aligning content within the card */
+  background-color: var(--card-background-color); /* Use CSS variable */
+  display: flex;
   flex-direction: column;
-  justify-content: center; /* Center content vertically */
-  align-items: center; /* Center content horizontally */
+  justify-content: center;
+  align-items: center;
   text-align: center;
 }
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.card-content {
-  /* Styles for the content area within a card if needed */
+  box-shadow: var(--card-hover-box-shadow);
 }
 
 .card-title {
-  margin: 0; /* Remove default margins from h3 if it's inside card-content */
+  margin: 0;
   font-size: 1.1em;
-  color: #555;
+  color: var(--card-title-color); /* Use CSS variable */
 }
 
 .loading-message,
@@ -52,7 +48,7 @@ h2 {
   width: 100%;
   text-align: center;
   padding: 20px;
-  color: #777;
+  color: var(--secondary-text-color); /* Use CSS variable */
   font-style: italic;
 }
 
@@ -60,8 +56,8 @@ h2 {
   display: inline-block;
   margin-bottom: 20px;
   padding: 8px 15px;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--button-background-color); /* Use CSS variable */
+  color: var(--button-text-color); /* Use CSS variable */
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -69,24 +65,24 @@ h2 {
 }
 
 .back-button:hover {
-  background-color: #0056b3;
+  background-color: var(--button-hover-background-color); /* Use CSS variable */
 }
 
-/* Specific adjustments if needed */
-.profile-cards-container {
+/* Specific adjustments if needed (commented out from prompt) */
+/* .profile-cards-container { */
   /* Any specific styles for the container of profile cards */
-}
+/* } */
 
-.service-cards-container {
+/* .service-cards-container { */
   /* Any specific styles for the container of service cards */
-}
+/* } */
 
-.profile-card {
+/* .profile-card { */
   /* Specific styles for profile cards, e.g., background color */
   /* background-color: #f9f9f9; */
-}
+/* } */
 
-.service-card {
+/* .service-card { */
   /* Specific styles for service cards, e.g., background color */
   /* background-color: #e9f7ef; */
-}
+/* } */

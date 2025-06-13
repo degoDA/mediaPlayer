@@ -19,7 +19,9 @@ export class WebsocketService {
   // nowPlaying: NowPlayingData = {} as NowPlayingData; // Will be part of mediaPlayerState
   // elapsedSec: string = '0'; // Will be part of mediaPlayerState
   mediaPlayerState: MediaPlayerState = {};
-  public backCategory: any = {}; // Made public for CategoryNavigationComponent's isAtRootLevel
+  // public backCategory: any = {}; // Removed
+  private categoryHistoryStack: any[] = [];
+  private currentCategoryRequestMessage: any = null;
 
   connect(url: string, protocol: string): void {
     this.socket = new WebSocket(url, protocol);
@@ -138,11 +140,18 @@ export class WebsocketService {
       }
     }
     this.send(JSON.stringify(msg));
-    this.saveCategory(msg) // Consider if msg matches CategoryItem or if mapping is needed
+    // this.saveCategory(msg) // Removed
+    this.categoryHistoryStack = []; // Clear history for new provider
+    this.currentCategoryRequestMessage = JSON.parse(JSON.stringify(msg)); // Store a copy
   }
 
-  browseCategorie(category: CategoryItem){ // Updated type
-    let msg = {
+  browseCategorie(categoryToEnter: CategoryItem){ // Renamed param for clarity
+    // Before sending the new message, save the current request message (which led to this list)
+    if (this.currentCategoryRequestMessage) {
+      this.categoryHistoryStack.push(JSON.parse(JSON.stringify(this.currentCategoryRequestMessage))); // Store a copy
+    }
+
+    const newMsg = { // Renamed to newMsg for clarity
       "Device": {
         "MediaNavigation": {
           "RequestAction": {
@@ -151,18 +160,19 @@ export class WebsocketService {
             "ProfileKey": environment.profileKey,
             "MenuCategory": "ProviderBrowseMenu",
             "MenuCategoryOptions": {
-              "ProviderKey": category.providerKey,
-              "BrowseKey": category.browseKey,
+              "ProviderKey": categoryToEnter.providerKey,
+              "BrowseKey": categoryToEnter.browseKey,
               "ItemCount": 50,
               "ItemOffset": 0,
-              "SignedData": category.signedData
+              "SignedData": categoryToEnter.signedData
             }
           }
         }
       }
-    }
-    this.send(JSON.stringify(msg));
-    this.saveCategory(category); // Pass the category object
+    };
+    this.send(JSON.stringify(newMsg));
+    this.currentCategoryRequestMessage = JSON.parse(JSON.stringify(newMsg)); // Update current request
+    // Old call to saveCategory(category) removed
   }
 
   playback(item: CategoryItem | MediaItem){ // Updated type to allow MediaItem as well
@@ -206,9 +216,22 @@ export class WebsocketService {
     this.send(JSON.stringify(msg));
   }
 
-  selectBackCategory(){
-    this.send(JSON.stringify(this.backCategory[0]));
-    console.log(this.backCategory[0])
+  selectBackCategory(): boolean {
+    if (this.categoryHistoryStack.length > 0) {
+      const previousCategoryRequestMessage = this.categoryHistoryStack.pop();
+      if (previousCategoryRequestMessage) {
+        this.send(JSON.stringify(previousCategoryRequestMessage));
+        // When we go back, the message we just sent becomes the new "current"
+        this.currentCategoryRequestMessage = previousCategoryRequestMessage;
+        return true; // Successfully went back
+      }
+    }
+    // If stack becomes empty or was empty, potentially clear current or set to a root/home state
+    // For now, if stack is empty, there's no "current" defined by back action.
+    // Consider if currentCategoryRequestMessage should be set to null if stack is empty.
+    // Depending on desired behavior, might need to fetch a default/home screen if stack is empty.
+    // this.currentCategoryRequestMessage = null; // Optional: clear if stack empty
+    return false; // Cannot go back further
   }
 
   send(message: string): void {
@@ -337,24 +360,13 @@ export class WebsocketService {
     }
   }
 
-  saveCategory(category : CategoryItem | any){ // Updated type, though 'any' might still be needed if msg is passed
-    // This logic might need review if 'category' is now always CategoryItem
-    // and 'msg' (the raw message) was intended for backCategory
-    if(this.backCategory[0] == undefined)
-      this.backCategory[0] = category;
-    else{
-      if(this.backCategory[1] == undefined)
-        this.backCategory[1] = category;
-      else{
-        this.backCategory[0] = this.backCategory[1];
-        this.backCategory[1] = category;
-      }
-    }
-    console.log('browse',this.backCategory);
-  }
+  // saveCategory method removed
 
   reportUIMessageData(data: any) {
     this.UIMessageDataSource.next(data);
   }
 
+  public get canNavigateBackInCategory(): boolean {
+    return this.categoryHistoryStack.length > 0;
+  }
 }
