@@ -1,8 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../environments/environment'; // Correct import for environment
 
 // Assuming environment.ts exists and has these properties.
 // In a real Angular app, this would be: import { environment } from '../../../environments/environment';
+// const environment = {
+//   production: false,
+//   webSocketUrl: 'ws://localhost:8080/cresnext/client', // Example URL
+//   webSocketProtocol: 'cresnext-api', // Example Protocol
+//   clientId: 'AngularApp', // Example Client ID
+//   profileKey: '', // Example Profile Key (might be set dynamically)
+//   playerId: 'Player01' // Example Player ID
+// };
 
 import { ProfileSelectionComponent } from '../profile-selection/profile-selection.component';
 import { CategoryNavigationComponent } from '../category-navigation/category-navigation.component';
@@ -10,7 +19,6 @@ import { PlayerComponent } from '../player/player.component';
 import { WebsocketService } from '../../services/websocket.service';
 import { MediaItem } from '../../interfaces/media.interface';
 import { CategoryItem } from '../../interfaces/category.interface';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-main-player-view',
@@ -34,13 +42,15 @@ export class MainPlayerViewComponent implements OnInit {
   selectedProviderId?: string;
   selectedPlayableItem?: MediaItem | CategoryItem;
 
-  constructor(private websocketService: WebsocketService) {}
+  constructor(private websocketService: WebsocketService) {
+    // Constructor logic (other than DI) to be commented out if any exists.
+    // Currently, only DI is present, so no changes here.
+  }
 
   ngOnInit(): void {
     // Connect to WebSocket server
     // Ensure that environment variables are correctly set in your actual environment files.
-    console.table(environment)
-    this.websocketService.connect(environment.websocketUrl, environment.protocol);
+    this.websocketService.connect(environment.webSocketUrl, environment.webSocketProtocol);
   }
 
   onProviderSelected(providerId: string): void {
