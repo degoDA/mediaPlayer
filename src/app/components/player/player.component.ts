@@ -180,9 +180,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
       case 'PlayPause':
         const canPlay = backendActions.includes('Play');
         const canPause = backendActions.includes('Pause');
-        // console.log(`[PlayerComponent] For PlayPause: backend has 'Play'=${canPlay}, backend has 'Pause'=${canPause}`); // Removed
-        return (this.mediaPlayerState?.nowPlayingData && (canPlay || canPause)) ||
-               (this.mediaPlayerState?.nowPlayingData && backendActions.length === 0); // Tentatively enable PlayPause if a track is loaded and no actions specified
+        console.log(`[PlayerComponent] For PlayPause: backend has 'Play'=${canPlay}, backend has 'Pause'=${canPause}`); // Keep this log for now
+        // Ensure PlayPause is only available if there's something to play/pause
+        // and if either Play or Pause action is actually available.
+        return (this.mediaPlayerState?.nowPlayingData && (canPlay || canPause)) || false;
       case 'Next':
         const canNext = backendActions.includes('NextTrack');
         // console.log(`[PlayerComponent] For Next: backend has 'NextTrack'=${canNext}`); // Removed

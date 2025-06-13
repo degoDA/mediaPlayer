@@ -47,7 +47,7 @@
       </button>
     </div>
 
-    <div class="secondary-buttons-container" *ngIf="mediaPlayerState?.availableActions && mediaPlayerState.availableActions.length > 0">
+    <div class="secondary-buttons-container" *ngIf="mediaPlayerState?.availableActions?.length">
         <button *ngIf="isActionAvailable('Shuffle')"
                 class="control-button secondary"
                 (click)="sendPlaybackAction('Shuffle')"
