@@ -19,6 +19,7 @@ import { PlayerComponent } from '../player/player.component';
 import { WebsocketService } from '../../services/websocket.service';
 import { MediaItem } from '../../interfaces/media.interface';
 import { CategoryItem } from '../../interfaces/category.interface';
+import { Profile } from '../../interfaces/profile.interface'; // Added import
 
 @Component({
   selector: 'app-main-player-view',
