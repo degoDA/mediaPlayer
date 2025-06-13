@@ -27,6 +27,7 @@
   /* background-color: var(--background-color); /* Inherited or already set */
   display: flex; /* To allow children like category-navigation to take full height */
   flex-direction: column; /* If children need to stack and one of them scrolls */
+  box-sizing: border-box; /* Add or ensure */
 }
 
 .player-footer {

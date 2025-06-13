@@ -66,19 +66,13 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   sendPlaybackAction(action: string): void {
-    // Check if the action is available, if availableActions is populated
-    if (this.mediaPlayerState?.availableActions && this.mediaPlayerState.availableActions.hasOwnProperty(action)) {
-      if ((this.mediaPlayerState.availableActions as any)[action]) { // Type assertion
-        this.websocketService.playbackAction(action);
-      } else {
-        console.warn(`Action ${action} is not available.`);
-      }
-    } else if (!this.mediaPlayerState?.availableActions) {
-      // If availableActions is not yet populated, send the action optimistically.
-      // Or, you could disable buttons until availableActions is known.
+    console.log('[PlayerComponent] sendPlaybackAction called with action:', action); // ADD THIS LOG
+    // Using the existing isActionAvailable helper which checks this.mediaPlayerState.availableActions
+    if (this.isActionAvailable(action)) {
       this.websocketService.playbackAction(action);
     } else {
-       console.warn(`Action ${action} is not listed in availableActions.`);
+      // Updated warning to match the spirit of the prompt's example
+      console.warn(`[PlayerComponent] Action ${action} is not available or button should be disabled.`);
     }
   }
 
@@ -123,7 +117,44 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   // Helper to check action availability for buttons
   isActionAvailable(action: string): boolean {
-    if (!this.mediaPlayerState?.availableActions) return true; // Optimistically enable if not known
-    return (this.mediaPlayerState.availableActions as any)[action] === true;
+    console.log(`[PlayerComponent] isActionAvailable called for action: "${action}"`);
+    console.log('[PlayerComponent] Current mediaPlayerState.availableActions:', this.mediaPlayerState?.availableActions);
+
+    if (!this.mediaPlayerState?.availableActions) {
+      console.log('[PlayerComponent] availableActions is undefined or null, typically meaning all actions are disabled or state is unknown.');
+      // If availableActions is not defined, it's safer to assume actions are not available,
+      // unless 'PlayPause' has special handling when a track is loaded but no actions specified.
+      // However, the template uses this to *disable* buttons, so returning false makes them disabled.
+      // The original logic was `return true` (optimistically enable).
+      // Let's stick to disabling if unknown, except for perhaps a very specific PlayPause.
+      // For now, if no availableActions, assume no actions are available from backend.
+      return false;
+    }
+
+    // Specific handling for 'PlayPause' as it's a common UI toggle
+    // that might map to 'Play' or 'Pause' actions from the backend.
+    if (action === 'PlayPause') {
+       const canPlay = this.mediaPlayerState.availableActions.hasOwnProperty('Play') && (this.mediaPlayerState.availableActions as any)['Play'] === true;
+       const canPause = this.mediaPlayerState.availableActions.hasOwnProperty('Pause') && (this.mediaPlayerState.availableActions as any)['Pause'] === true;
+       console.log(`[PlayerComponent] For PlayPause: has 'Play' action = ${canPlay}, has 'Pause' action = ${canPause}`);
+       // The PlayPause button is enabled if either 'Play' or 'Pause' action is available.
+       // The actual icon/text on the button might change based on current player state (e.g. isPlaying),
+       // but this method just determines if the button itself is interactive.
+       return canPlay || canPause;
+    }
+
+    // For other actions like Next, Previous, Shuffle, Repeat
+    const hasAction = this.mediaPlayerState.availableActions.hasOwnProperty(action);
+    const isActionTrue = hasAction && (this.mediaPlayerState.availableActions as any)[action] === true;
+
+    console.log(`[PlayerComponent] mediaPlayerState.availableActions.hasOwnProperty("${action}"):`, hasAction);
+    if(hasAction) {
+      console.log(`[PlayerComponent] Value of action "${action}":`, (this.mediaPlayerState.availableActions as any)[action]);
+    }
+    // Action is available if the key exists AND its value is true.
+    // Or if the key exists and it's not explicitly false (some backends might just list available actions without true/false)
+    // For this implementation, we assume if key exists, it implies availability (true), unless it's explicitly false.
+    // The prompt for PlaybackAction interface suggested boolean flags, so `=== true` is safer.
+    return isActionTrue;
   }
 }

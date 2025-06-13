@@ -200,19 +200,21 @@ export class WebsocketService {
   }
 
   playbackAction(action: string){ // Action could be typed if specific actions are known e.g. 'PlayPause' | 'Next'
+    console.log('[WebsocketService] playbackAction called with action:', action); // ADD THIS LOG
     let msg = {
       "Device": {
         "MediaPlayerNeXt": {
           "RequestAction": {
             "RcSessionId": this.rcSessionId,
-            "MsgId": uuidv1(),
-            "PlayerId": environment.playerId,
+            "MsgId": uuidv1(), // Ensure uuidv1 is imported/available
+            "PlayerId": environment.playerId, // Ensure environment is imported/available
             "ActionId": action,
             "ActionIdOptions": {}
           }
         }
       }
-    }
+    };
+    console.log('[WebsocketService] Sending playback action message:', JSON.stringify(msg)); // ADD THIS LOG
     this.send(JSON.stringify(msg));
   }
 
