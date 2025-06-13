@@ -1,5 +1,9 @@
 .category-navigation-container {
   padding: 15px;
+  display: flex; /* Add */
+  flex-direction: column; /* Add */
+  height: 100%; /* Add - this assumes parent (.content-area) provides a constrainable height */
+  box-sizing: border-box; /* Add - to include padding in height calculation */
   /* background-color: var(--background-color); /* Inherits */
 }
 
@@ -106,16 +110,40 @@
   margin-top: 2px; /* Added from original */
 }
 
+.scrollable-category-list-wrapper {
+  flex-grow: 1; /* Allows this div to take up available vertical space */
+  overflow-y: auto; /* Enables vertical scrollbar only when needed */
+  min-height: 0; /* Important for flex children to not overflow parent */
+}
+
+/* .category-list itself (if it's a ul or div directly inside the wrapper)
+   should not have conflicting height or overflow properties.
+   Its default block layout should be fine if it was a div.
+   If it was a ul, list-style:none and padding:0 are good.
+*/
+.category-list {
+  /* list-style: none; /* If it's a UL, otherwise not needed */
+  /* padding: 0; */ /* If it's a UL */
+  /* margin: 0; */ /* If it's a UL */
+  /* Remove any fixed height or overflow properties if they existed here */
+}
+
+
 .indicator {
   margin-left: auto; /* Pushes to the right */
   font-size: 1.2em;
   color: var(--primary-color);
 }
 
-/* Message for no categories */
-.category-navigation-container p {
+/* Message for no categories - ensure it's styled appropriately within the scrollable or static view */
+.loading-message { /* Assuming this class is used on the <p> tag */
   color: var(--secondary-text-color);
   text-align: center;
-  margin-top: 20px;
+  padding: 20px; /* Give it some space */
   font-style: italic;
+}
+
+/* Ensure the generic p selector doesn't override specific message styling if .loading-message is on the <p> */
+.category-navigation-container p.loading-message {
+  /* Specific overrides if needed, but above should cover it */
 }

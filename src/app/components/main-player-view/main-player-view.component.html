@@ -39,7 +39,7 @@
     </div>
   </main>
 
-  <footer class="player-footer" *ngIf="currentView === 'categories' || currentView === 'player'">
+  <footer class="player-footer" *ngIf="websocketService.mediaPlayerState && websocketService.mediaPlayerState.nowPlayingData">
     <!-- Player component is always visible at the bottom once we move past profile selection -->
     <app-player></app-player>
   </footer>

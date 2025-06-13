@@ -1,11 +1,12 @@
-.main-player-container { /* Changed from .main-player-view-container to match HTML if needed */
+.main-player-view-container { /* Actual class name from HTML */
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Full viewport height */
-  background-color: var(--background-color); /* Use CSS variable */
+  height: 100vh; /* Full viewport height */
+  background-color: var(--background-color);
+  overflow: hidden; /* Prevent this container from scrolling */
 }
 
-.player-header { /* Changed from .app-header to match HTML if needed */
+.app-header { /* Actual class name from HTML */
   background-color: var(--surface-color); /* Use CSS variable */
   color: var(--on-surface-text-color); /* Use CSS variable */
   padding: 15px 20px;
@@ -20,8 +21,12 @@
 
 .content-area {
   flex-grow: 1;
-  padding: 20px;
-  /* background-color: var(--background-color); /* Already on body via .main-player-container */
+  padding: 20px; /* Or existing padding */
+  overflow-y: hidden; /* Crucial: Content area itself should not scroll */
+  min-height: 0; /* For flex children that scroll */
+  /* background-color: var(--background-color); /* Inherited or already set */
+  display: flex; /* To allow children like category-navigation to take full height */
+  flex-direction: column; /* If children need to stack and one of them scrolls */
 }
 
 .player-footer {
@@ -29,6 +34,7 @@
   padding: 10px;
   box-shadow: 0 -2px 4px rgba(0,0,0,0.2); /* Shadow on top */
   border-top: 1px solid var(--border-color);
+  flex-shrink: 0; /* Prevent footer from shrinking */
 }
 
 /* Remove responsive rules if they are not needed or handled globally */

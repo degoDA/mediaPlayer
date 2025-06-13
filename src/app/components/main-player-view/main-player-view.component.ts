@@ -44,7 +44,7 @@ export class MainPlayerViewComponent implements OnInit {
   activeProfileIdForServiceView?: string; // Added property
   selectedPlayableItem?: MediaItem | CategoryItem;
 
-  constructor(private websocketService: WebsocketService) {
+  constructor(public websocketService: WebsocketService) { // Changed to public
     // Constructor logic (other than DI) to be commented out if any exists.
     // Currently, only DI is present, so no changes here.
   }
