@@ -1,52 +1,92 @@
 .profile-selection-container {
+  padding: 20px;
   font-family: Arial, sans-serif;
-  padding: 15px;
 }
 
-.profile-section {
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.profile-section h3 {
-  margin-top: 0;
+h2 {
   color: #333;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-.profile-section ul {
-  list-style-type: none;
-  padding-left: 0;
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Space between cards */
+  justify-content: center; /* Center cards in the container */
 }
 
-.profile-section li {
-  margin-bottom: 8px;
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  width: 200px; /* Fixed width for cards, adjust as needed */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: #fff;
+  display: flex; /* For aligning content within the card */
+  flex-direction: column;
+  justify-content: center; /* Center content vertically */
+  align-items: center; /* Center content horizontally */
+  text-align: center;
 }
 
-.profile-section button {
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.card-content {
+  /* Styles for the content area within a card if needed */
+}
+
+.card-title {
+  margin: 0; /* Remove default margins from h3 if it's inside card-content */
+  font-size: 1.1em;
+  color: #555;
+}
+
+.loading-message,
+.no-services-message {
+  width: 100%;
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  font-style: italic;
+}
+
+.back-button {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 8px 15px;
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 10px 15px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: 0.9em;
 }
 
-.profile-section button:hover {
+.back-button:hover {
   background-color: #0056b3;
 }
 
-.profile-section button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
+/* Specific adjustments if needed */
+.profile-cards-container {
+  /* Any specific styles for the container of profile cards */
 }
 
-p {
-  color: #555;
+.service-cards-container {
+  /* Any specific styles for the container of service cards */
+}
+
+.profile-card {
+  /* Specific styles for profile cards, e.g., background color */
+  /* background-color: #f9f9f9; */
+}
+
+.service-card {
+  /* Specific styles for service cards, e.g., background color */
+  /* background-color: #e9f7ef; */
 }

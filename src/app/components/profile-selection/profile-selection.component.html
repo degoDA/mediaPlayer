@@ -1,22 +1,34 @@
 <div class="profile-selection-container">
-  <div *ngIf="profiles && profiles.length > 0; else noProfiles">
-    <div *ngFor="let profile of profiles" class="profile-section">
-      <h3>{{ profile.name }}</h3>
-      <div *ngIf="profile.providers && profile.providers.length > 0; else noProvidersForProfile">
-        <ul>
-          <li *ngFor="let provider of profile.providers">
-            <button (click)="selectProvider(provider.idService)">
-              {{ provider.name }}
-            </button>
-          </li>
-        </ul>
+  <!-- Display Profiles List -->
+  <div *ngIf="!selectedProfile">
+    <h2>Select a Profile</h2>
+    <div class="cards-container profile-cards-container">
+      <div *ngIf="profiles.length === 0" class="loading-message">
+        Loading profiles or no profiles found...
       </div>
-      <ng-template #noProvidersForProfile>
-        <p>No providers available for this profile.</p>
-      </ng-template>
+      <div class="card profile-card" *ngFor="let profile of profiles" (click)="selectProfile(profile)">
+        <div class="card-content">
+          <h3 class="card-title">{{ profile.name }}</h3>
+          <!-- Optional: could show number of providers if desired -->
+          <!-- <p class="card-subtitle" *ngIf="profile.providers">{{ profile.providers.length }} service(s) available</p> -->
+        </div>
+      </div>
     </div>
   </div>
-  <ng-template #noProfiles>
-    <p>Loading profiles or no profiles found.</p>
-  </ng-template>
+
+  <!-- Display Services for Selected Profile -->
+  <div *ngIf="selectedProfile">
+    <h2>Services for {{ selectedProfile.name }}</h2>
+    <button class="back-button" (click)="showProfiles()">← Back to Profiles</button>
+    <div class="cards-container service-cards-container">
+      <div *ngIf="servicesForSelectedProfile.length === 0" class="no-services-message">
+        No services found for this profile.
+      </div>
+      <div class="card service-card" *ngFor="let provider of servicesForSelectedProfile" (click)="selectService(provider)">
+        <div class="card-content">
+          <h3 class="card-title">{{ provider.name }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

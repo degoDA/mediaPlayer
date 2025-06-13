@@ -14,6 +14,8 @@ import { Profile, Provider } from '../../interfaces/profile.interface';
 export class ProfileSelectionComponent implements OnInit, OnDestroy {
   @Output() providerSelected = new EventEmitter<string>();
   profiles: Profile[] = [];
+  selectedProfile?: Profile;
+  servicesForSelectedProfile: Provider[] = [];
   private uiSubscription!: Subscription; // Definite assignment assertion
 
   constructor(private websocketService: WebsocketService) {}
@@ -34,13 +36,22 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectProvider(providerId: string | undefined): void {
-    if (providerId) {
-      this.providerSelected.emit(providerId);
-      // Optionally, tell websocket service to browse this provider
-      this.websocketService.browseProvider(providerId);
+  selectProfile(profile: Profile): void {
+    this.selectedProfile = profile;
+    this.servicesForSelectedProfile = profile.providers || [];
+  }
+
+  selectService(provider: Provider | undefined): void {
+    if (provider && provider.idService) {
+      this.providerSelected.emit(provider.idService);
+      this.websocketService.browseProvider(provider.idService);
     } else {
-      console.warn('selectProvider called with undefined providerId');
+      console.warn('Attempted to select an undefined provider or provider with no idService.');
     }
+  }
+
+  showProfiles(): void {
+    this.selectedProfile = undefined;
+    this.servicesForSelectedProfile = [];
   }
 }
