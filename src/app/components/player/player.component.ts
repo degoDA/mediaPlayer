@@ -35,20 +35,38 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Converts a time string (MM:SS or SS) to seconds.
+   * Converts a time string (MM:SS or SS) or a number to seconds.
    */
   private timeToSeconds(timeStr: string | number | undefined): number {
-    if (timeStr === undefined) return 0;
-    if (typeof timeStr === 'number') return timeStr; // Already seconds
-
-    const parts = String(timeStr).split(':');
-    let seconds = 0;
-    if (parts.length === 2) { // MM:SS
-      seconds = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-    } else if (parts.length === 1) { // SS
-      seconds = parseInt(parts[0], 10);
+    if (timeStr === undefined || timeStr === null) {
+      return 0;
     }
-    return isNaN(seconds) ? 0 : seconds;
+    if (typeof timeStr === 'number') {
+      return isNaN(timeStr) ? 0 : timeStr;
+    }
+    // It's a string
+    if (String(timeStr).includes(':')) {
+      const parts = String(timeStr).split(':');
+      const minutes = parseInt(parts[0], 10);
+      const seconds = parseInt(parts[1], 10);
+      if (!isNaN(minutes) && !isNaN(seconds)) {
+        return (minutes * 60) + seconds;
+      }
+      return 0;
+    }
+    const numSeconds = parseInt(String(timeStr), 10);
+    return isNaN(numSeconds) ? 0 : numSeconds;
+  }
+
+  private formatTimeDisplay(totalSeconds: number): string {
+    if (isNaN(totalSeconds) || totalSeconds < 0) {
+      return '00:00';
+    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    const paddedMinutes = String(minutes).padStart(2, '0');
+    const paddedSeconds = String(seconds).padStart(2, '0');
+    return `${paddedMinutes}:${paddedSeconds}`;
   }
 
   calculateProgress(): void {
@@ -139,21 +157,13 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   get totalDurationFormatted(): string {
-    if (!this.nowPlayingData?.duration) return '0:00';
-    if (typeof this.nowPlayingData.duration === 'number') {
-        const minutes = Math.floor(this.nowPlayingData.duration / 60);
-        const seconds = this.nowPlayingData.duration % 60;
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    }
-    return this.nowPlayingData.duration; // Assume it's already formatted if string
+    const durationNum = this.timeToSeconds(this.mediaPlayerState?.nowPlayingData?.duration);
+    return this.formatTimeDisplay(durationNum);
   }
 
   get elapsedSecFormatted(): string {
-    if (this.mediaPlayerState?.elapsedSec === undefined) return '0:00';
-    const elapsed = this.timeToSeconds(this.mediaPlayerState.elapsedSec);
-    const minutes = Math.floor(elapsed / 60);
-    const seconds = elapsed % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    const elapsedNum = this.timeToSeconds(this.mediaPlayerState?.elapsedSec);
+    return this.formatTimeDisplay(elapsedNum);
   }
 
   get isCurrentlyPausable(): boolean {

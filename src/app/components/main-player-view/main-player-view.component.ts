@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'; // Added OnDestroy, ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment'; // Corrected import path
 
@@ -19,7 +19,8 @@ import { PlayerComponent } from '../player/player.component';
 import { WebsocketService } from '../../services/websocket.service';
 import { MediaItem } from '../../interfaces/media.interface';
 import { CategoryItem } from '../../interfaces/category.interface';
-import { Profile } from '../../interfaces/profile.interface'; // Added import
+import { Profile } from '../../interfaces/profile.interface';
+import { NotificationComponent } from '../notification/notification.component'; // Added import
 
 @Component({
   selector: 'app-main-player-view',
@@ -28,31 +29,64 @@ import { Profile } from '../../interfaces/profile.interface'; // Added import
     CommonModule,
     ProfileSelectionComponent,
     CategoryNavigationComponent,
-    PlayerComponent
+    PlayerComponent,
+    NotificationComponent // Added NotificationComponent to imports
   ],
   templateUrl: './main-player-view.component.html',
   styleUrls: ['./main-player-view.component.css']
 })
-export class MainPlayerViewComponent implements OnInit {
+export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implemented OnDestroy
   currentView: 'profiles' | 'categories' | 'player' = 'profiles';
-  // Alternative: use boolean flags for more complex layouts
-  // showProfileSelection = true;
-  // showCategoryNavigation = false;
-  // showPlayer = false;
-
   selectedProviderId?: string;
-  activeProfileIdForServiceView?: string; // Added property
+  activeProfileIdForServiceView?: string;
   selectedPlayableItem?: MediaItem | CategoryItem;
 
-  constructor(public websocketService: WebsocketService) { // Changed to public
-    // Constructor logic (other than DI) to be commented out if any exists.
-    // Currently, only DI is present, so no changes here.
-  }
+  currentNotification: string | null = null;
+  private notificationTimeout: any = null;
+  private uiSubscription: any; // To hold the subscription
+
+  constructor(
+    public websocketService: WebsocketService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    // Connect to WebSocket server
-    // Ensure that environment variables are correctly set in your actual environment files.
     this.websocketService.connect(environment.webSocketUrl, environment.webSocketProtocol);
+
+    this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
+      // Existing logic for profiles, categories, player state would be here...
+      // For example, if data.profiles exists, update this.profiles etc.
+      // This example focuses on adding the msgNotification part.
+
+      if (data.hasOwnProperty('msgNotification')) {
+        const notificationMsg = data.msgNotification;
+        if (notificationMsg && typeof notificationMsg === 'string' && notificationMsg.trim() !== '') {
+          this.currentNotification = notificationMsg;
+          this.cdr.detectChanges();
+
+          if (this.notificationTimeout) {
+            clearTimeout(this.notificationTimeout);
+          }
+          this.notificationTimeout = setTimeout(() => {
+            this.currentNotification = null;
+            this.cdr.detectChanges();
+          }, 7000);
+        } else if (notificationMsg === null || (typeof notificationMsg === 'string' && notificationMsg.trim() === '')) {
+          if (this.notificationTimeout) {
+            clearTimeout(this.notificationTimeout);
+          }
+          this.currentNotification = null;
+          this.cdr.detectChanges();
+        }
+      }
+
+      // Placeholder for other data processing from newUIMessageData
+      if (data.profiles) { /* ... */ }
+      if (data.categories) { /* ... */ }
+      if (data.mediaPlayerState) { /* ... */ }
+      if (data.connected) { /* ... */ }
+
+    });
   }
 
   onProviderSelected(data: { providerId: string, profile: Profile }): void { // Signature updated
@@ -63,6 +97,15 @@ export class MainPlayerViewComponent implements OnInit {
     this.currentView = 'categories';
     // ProfileSelectionComponent already calls browseProvider
     console.log('Provider selected in main view:', data.providerId);
+  }
+
+  ngOnDestroy(): void {
+    if (this.uiSubscription) {
+      this.uiSubscription.unsubscribe();
+    }
+    if (this.notificationTimeout) {
+      clearTimeout(this.notificationTimeout); // Clear timeout on component destroy
+    }
   }
 
   onPlayableItemSelected(item: MediaItem | CategoryItem): void {
