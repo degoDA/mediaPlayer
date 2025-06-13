@@ -353,39 +353,82 @@ export class WebsocketService {
         this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } }); // Spread to help change detection
       }
 
-      if (
-        // Response playback nowPlaying (includes ElapsedSec)
-        response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData
-      ){
-        const nowPlayingDataResp = response.Device.MediaPlayerNeXt.Players.Player01.Player.NowPlayingData;
-        const currentNowPlaying: NowPlayingData = {
-          idnowPlaying: nowPlayingDataResp.idnowPlaying || this.mediaPlayerState.nowPlayingData?.idnowPlaying || uuidv1(),
-          trackTitle: nowPlayingDataResp.TrackTitle,
-          artistName: nowPlayingDataResp.ArtistName,
-          albumName: nowPlayingDataResp.AlbumName,
-          stationName: nowPlayingDataResp.StationName,
-          albumArtUrl: nowPlayingDataResp.AlbumArtUrl,
-          trackNum: nowPlayingDataResp.TrackNum,
-          trackCnt: nowPlayingDataResp.TrackCnt,
-          duration: nowPlayingDataResp.Duration,
-        };
-        this.mediaPlayerState.nowPlayingData = currentNowPlaying;
-        if (nowPlayingDataResp.ElapsedSec !== undefined) {
-          this.mediaPlayerState.elapsedSec = nowPlayingDataResp.ElapsedSec;
+      // --- Start of Refactored NowPlayingData Block ---
+      const nowPlayingDataPath = response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData;
+
+      if (nowPlayingDataPath) { // Check if the NowPlayingData object itself exists
+        // Check for a valid TrackTitle before processing this NowPlayingData update
+        if (nowPlayingDataPath.TrackTitle && String(nowPlayingDataPath.TrackTitle).trim() !== '') {
+
+          const newNowPlaying: NowPlayingData = {
+            idnowPlaying: 'current', // Or generate/use a proper ID if available from nowPlayingDataPath.idnowPlaying
+            trackTitle: String(nowPlayingDataPath.TrackTitle),
+            artistName: String(nowPlayingDataPath.ArtistName || ''),
+            albumName: String(nowPlayingDataPath.AlbumName || ''),
+            stationName: String(nowPlayingDataPath.StationName || ''),
+            albumArtUrl: String(nowPlayingDataPath.AlbumArtUrl || ''),
+            trackNum: Number(nowPlayingDataPath.TrackNum || 0),
+            trackCnt: Number(nowPlayingDataPath.TrackCnt || 0),
+            duration: String(nowPlayingDataPath.Duration || '0') // Keep as string, PlayerComponent handles conversion
+          };
+
+          this.mediaPlayerState.nowPlayingData = newNowPlaying;
+
+          if (nowPlayingDataPath.hasOwnProperty('ElapsedSec')) {
+               this.mediaPlayerState.elapsedSec = String(nowPlayingDataPath.ElapsedSec || '0');
+          }
+
+          // console.log('[WebsocketService] Valid NowPlayingData received, mediaPlayerState updated:', this.mediaPlayerState); // Removed
+          this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } });
+
+        } else {
+          console.warn('[WebsocketService] Received NowPlayingData without a valid TrackTitle. Player info will not be updated with this message. Data:', nowPlayingDataPath); // Kept
+          // If only ElapsedSec came in this payload but TrackTitle was invalid, we might still want to process ElapsedSec.
+          // This logic currently skips the entire payload if TrackTitle is invalid.
+          // A separate check for ElapsedSec outside this if(nowPlayingDataPath.TrackTitle) block might be needed
+          // if ElapsedSec can arrive in a NowPlayingData object that temporarily lacks a TrackTitle.
         }
-        this.reportUIMessageData({ mediaPlayerState: this.mediaPlayerState });
+      }
+      // --- End of Refactored NowPlayingData Block ---
+
+      // The separate block for ElapsedSec updates (if it comes as a distinct message part or different path)
+      // This needs to be reviewed. If nowPlayingDataPath is the *only* source for ElapsedSec,
+      // and it's handled above (iff TrackTitle is valid), then this block might be redundant or needs adjustment.
+      // If an ElapsedSec update can come completely independently of a NowPlayingData object, this could be:
+      const elapsedSecPath = response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.ElapsedSec; // Path just for ElapsedSec
+      if (elapsedSecPath !== undefined && !nowPlayingDataPath) { // Only if not part of a NowPlayingData object processed above
+        // This condition means we received a message that is *not* a full NowPlayingData object
+        // but *does* contain an ElapsedSec update at the expected player path.
+        // This is less common; usually ElapsedSec is part of NowPlayingData.
+        // For safety, let's only update if there's already some nowPlayingData loaded.
+        if (this.mediaPlayerState.nowPlayingData) {
+            const newElapsedSec = String(elapsedSecPath || '0');
+            if (this.mediaPlayerState.elapsedSec !== newElapsedSec) { // Check if changed
+                this.mediaPlayerState.elapsedSec = newElapsedSec;
+                // console.log('[WebsocketService] Independent ElapsedSec update:', this.mediaPlayerState.elapsedSec); // Removed
+                this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } });
+            }
+        }
+      }
+      // However, the original code checked response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.ElapsedSec
+      // which implies ElapsedSec is a field *within* NowPlayingData.
+      // The new logic already handles this if TrackTitle is valid.
+      // If TrackTitle is *invalid* but ElapsedSec is present in nowPlayingDataPath, the current refactor *misses* that ElapsedSec.
+      // Let's ensure an ElapsedSec within nowPlayingDataPath is processed even if TrackTitle is bad,
+      // but only if nowPlayingData is already populated (so we're just updating time for an existing track).
+      else if (nowPlayingDataPath && nowPlayingDataPath.hasOwnProperty('ElapsedSec') && (!nowPlayingDataPath.TrackTitle || String(nowPlayingDataPath.TrackTitle).trim() === '')) {
+          // This case: NowPlayingData object exists, it has ElapsedSec, but TrackTitle is invalid.
+          // We only update elapsedSec if there's already a track loaded.
+          if (this.mediaPlayerState.nowPlayingData && this.mediaPlayerState.nowPlayingData.trackTitle) {
+              const newElapsedSec = String(nowPlayingDataPath.ElapsedSec || '0');
+              if (this.mediaPlayerState.elapsedSec !== newElapsedSec) { // Check if changed
+                  this.mediaPlayerState.elapsedSec = newElapsedSec;
+                  // console.log('[WebsocketService] ElapsedSec updated for existing track (TrackTitle in this message was invalid):', this.mediaPlayerState.elapsedSec); // Removed
+                  this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } });
+              }
+          }
       }
 
-      // This specific block for ElapsedSec might be redundant if NowPlayingData always includes it
-      // However, if ElapsedSec can update independently, it's needed.
-      if (
-        response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.ElapsedSec !== undefined &&
-        this.mediaPlayerState.nowPlayingData // Only update elapsedSec if nowPlayingData is set
-      ){
-        this.mediaPlayerState.elapsedSec = response.Device.MediaPlayerNeXt.Players.Player01.Player.NowPlayingData.ElapsedSec;
-        this.reportUIMessageData({ mediaPlayerState: this.mediaPlayerState });
-        // console.log('elapsed', this.mediaPlayerState.elapsedSec); // Keep for debugging if necessary
-      }
 
       if (
         // Response playback actions

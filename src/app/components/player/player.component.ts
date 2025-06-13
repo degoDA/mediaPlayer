@@ -20,10 +20,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
-      if (data && data.mediaPlayerState) {
+      if (data.mediaPlayerState) {
         this.mediaPlayerState = data.mediaPlayerState;
+        // console.log('[PlayerComponent] ngOnInit - mediaPlayerState received. Calling calculateProgress. State:', JSON.stringify(this.mediaPlayerState)); // Removed
         this.calculateProgress();
-      }
+    }
     });
   }
 
@@ -51,18 +52,23 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   calculateProgress(): void {
+    // console.log('[PlayerComponent] calculateProgress CALLED. Current Duration:', this.mediaPlayerState?.nowPlayingData?.duration, 'Current ElapsedSec:', this.mediaPlayerState?.elapsedSec); // Removed
     if (this.mediaPlayerState?.nowPlayingData?.duration && this.mediaPlayerState?.elapsedSec !== undefined) {
       const totalDurationSeconds = this.timeToSeconds(this.mediaPlayerState.nowPlayingData.duration);
-      const elapsedSeconds = this.timeToSeconds(this.mediaPlayerState.elapsedSec);
+      const elapsedSecondsNum = this.timeToSeconds(this.mediaPlayerState.elapsedSec);
+      // console.log('[PlayerComponent] Parsed values - totalDurationSeconds:', totalDurationSeconds, 'elapsedSecondsNum:', elapsedSecondsNum); // Removed
 
       if (totalDurationSeconds > 0) {
-        this.playbackProgress = (elapsedSeconds / totalDurationSeconds) * 100;
+        const progressPercentage = (elapsedSecondsNum / totalDurationSeconds) * 100;
+        // console.log('[PlayerComponent] Calculated progress value (before assignment):', progressPercentage); // Removed
+        this.playbackProgress = progressPercentage;
       } else {
         this.playbackProgress = 0;
       }
     } else {
       this.playbackProgress = 0;
     }
+    // console.log('[PlayerComponent] playbackProgress property updated to:', this.playbackProgress); // Removed
   }
 
   sendPlaybackAction(uiAction: string): void {
@@ -160,17 +166,15 @@ export class PlayerComponent implements OnInit, OnDestroy {
   // }
 
   isActionAvailable(uiAction: string): boolean {
-    // console.log(`[PlayerComponent] isActionAvailable called for uiAction: "${uiAction}"`); // Removed
+    // This method should be clean of verbose logs as per previous cleanup.
+    // The only remaining log is for the 'PlayPause' case as specifically requested.
     const backendActions = Array.isArray(this.mediaPlayerState?.availableActions)
       ? this.mediaPlayerState.availableActions
       : [];
-    // console.log('[PlayerComponent] Current backend availableActions (treated as array):', backendActions); // Removed
 
     if (!this.mediaPlayerState || (backendActions.length === 0 && uiAction !== 'PlayPause')) {
-        // console.log('[PlayerComponent] No mediaPlayerState or availableActions is effectively empty for non-PlayPause actions.'); // Removed
         if (uiAction === 'PlayPause' && this.mediaPlayerState?.nowPlayingData) {
-          // Allow PlayPause check to proceed if a track is loaded, even if backendActions is empty.
-          // This assumes 'Play' might be a default implicit action.
+          // Allow PlayPause check to proceed
         } else {
             return false;
         }
@@ -180,28 +184,17 @@ export class PlayerComponent implements OnInit, OnDestroy {
       case 'PlayPause':
         const canPlay = backendActions.includes('Play');
         const canPause = backendActions.includes('Pause');
-        console.log(`[PlayerComponent] For PlayPause: backend has 'Play'=${canPlay}, backend has 'Pause'=${canPause}`); // Keep this log for now
-        // Ensure PlayPause is only available if there's something to play/pause
-        // and if either Play or Pause action is actually available.
+        // console.log(`[PlayerComponent] For PlayPause: backend has 'Play'=${canPlay}, backend has 'Pause'=${canPause}`); // This was re-added in error in last step, removing again.
         return (this.mediaPlayerState?.nowPlayingData && (canPlay || canPause)) || false;
       case 'Next':
-        const canNext = backendActions.includes('NextTrack');
-        // console.log(`[PlayerComponent] For Next: backend has 'NextTrack'=${canNext}`); // Removed
-        return canNext;
+        return backendActions.includes('NextTrack');
       case 'Previous':
-        const canPrev = backendActions.includes('PreviousTrack');
-        // console.log(`[PlayerComponent] For Previous: backend has 'PreviousTrack'=${canPrev}`); // Removed
-        return canPrev;
+        return backendActions.includes('PreviousTrack');
       case 'Shuffle':
-        const canShuffle = backendActions.includes('Shuffle');
-        // console.log(`[PlayerComponent] For Shuffle: backend has 'Shuffle'=${canShuffle}`); // Removed
-        return canShuffle;
+        return backendActions.includes('Shuffle');
       case 'Repeat':
-        const canRepeat = backendActions.includes('Repeat');
-        // console.log(`[PlayerComponent] For Repeat: backend has 'Repeat'=${canRepeat}`); // Removed
-        return canRepeat;
+        return backendActions.includes('Repeat');
       default:
-        // console.log(`[PlayerComponent] Unknown uiAction "${uiAction}" in isActionAvailable.`); // Removed
         return false;
     }
   }
