@@ -5,6 +5,7 @@
   height: 100%; /* Add - this assumes parent (.content-area) provides a constrainable height */
   box-sizing: border-box; /* Add - to include padding in height calculation */
   /* background-color: var(--background-color); /* Inherits */
+  /* background-color: lightgreen !important; /* Removed temporary debugging */
 }
 
 /* Styles for the main title of the category navigation section */
@@ -116,9 +117,9 @@
 }
 
 .scrollable-category-list-wrapper {
-  flex-grow: 1; /* Allows this div to take up available vertical space */
-  overflow-y: auto; /* Enables vertical scrollbar only when needed */
-  min-height: 0; /* Important for flex children to not overflow parent */
+  height: 500px; /* As requested */
+  overflow-y: auto; /* Ensure this is present */
+  /* Removed flex-grow, min-height, position:relative, and debug styles */
 }
 
 /*
