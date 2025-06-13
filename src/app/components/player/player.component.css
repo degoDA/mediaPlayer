@@ -149,69 +149,68 @@
   gap: 10px;
 }
 
-
-.control-button { /* Style for Play/Pause, Next, Prev */
+/* Base style for all icon control buttons */
+.control-button {
   background-color: transparent;
   color: var(--primary-color);
   border: 1px solid var(--primary-color);
-  border-radius: 50%;
-  width: 45px; /* Adjusted size */
-  height: 45px;
-  font-size: 1.3em; /* Adjusted icon size */
+  border-radius: 50%; /* Circular buttons */
+  width: 44px;  /* Slightly larger to accommodate bigger icon */
+  height: 44px; /* Slightly larger */
+  font-size: 1.6em;  /* Increased icon size */
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 0; /* Ensure no padding interferes with icon centering */
+  line-height: 1; /* Helps center text-based icons if flex isn't perfect */
 }
+
 .control-button.play-pause { /* Specific for play-pause if larger */
-    width: 55px;
+    width: 55px; /* Keeping it slightly larger */
     height: 55px;
-    font-size: 1.8em;
+    font-size: 1.8em; /* Keeping its font size slightly larger */
 }
 
-
-.control-button.secondary { /* Style for Shuffle, Repeat */
-  background-color: transparent;
+/* Secondary buttons (Shuffle, Repeat) now also use icons and inherit .control-button base */
+.control-button.secondary {
+  /* Overrides for secondary icon buttons if they need to be smaller or different */
+  width: 40px; /* Slightly smaller than main action buttons but still icon-sized */
+  height: 40px;
+  font-size: 1.4em; /* Slightly smaller icon than main */
   color: var(--on-surface-text-color); /* Different base color for secondary */
   border: 1px solid var(--border-color); /* Muted border */
-  border-radius: 20px; /* Pill shape */
-  padding: 5px 15px; /* Padding for text */
-  font-size: 0.85em;
-  height: auto; /* Auto height based on padding */
-  width: auto;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  /* Retain other properties like border-radius: 50% from .control-button */
 }
 
-.control-button:hover:not(:disabled) {
+.control-button:hover:not(:disabled),
+.control-button.secondary:hover:not(:disabled) { /* Combined hover for icon buttons */
   background-color: var(--primary-color);
   color: var(--on-primary-text-color);
   border-color: var(--primary-color); /* Ensure border matches on hover */
 }
+
+/* Specific hover for secondary if it needs to be different, e.g. using accent color */
 .control-button.secondary:hover:not(:disabled) {
-  background-color: var(--accent-color-hover);
+  background-color: var(--accent-color-hover); /* Using accent for secondary hover */
   color: var(--on-primary-text-color);
   border-color: var(--accent-color-hover);
 }
+
+
 .control-button.secondary.active { /* For active state like Shuffle on */
     background-color: var(--primary-color);
     color: var(--on-primary-text-color);
     border-color: var(--primary-color);
 }
 
-
-.control-button:disabled {
+.control-button:disabled,
+.control-button.secondary:disabled { /* Combined disabled for icon buttons */
   color: var(--border-color);
   border-color: var(--border-color);
   cursor: not-allowed;
   background-color: transparent;
-}
-.control-button.secondary:disabled {
-    color: var(--border-color);
-    border-color: var(--border-color);
-    cursor: not-allowed;
-    background-color: transparent;
 }
 
 /* Removed .secondary-controls as .controls-section now handles its children (buttons-container, secondary-buttons-container) */

@@ -53,19 +53,22 @@
 }
 
 .back-button {
-  display: inline-block;
-  margin-bottom: 20px;
-  padding: 8px 15px;
-  background-color: var(--button-background-color); /* Use CSS variable */
-  color: var(--button-text-color); /* Use CSS variable */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
+  display: inline-block; /* Keep */
+  margin-bottom: 20px; /* Keep this contextual margin */
+  padding: var(--button-padding); /* Use variable */
+  background-color: var(--button-background-color); /* Use variable */
+  color: var(--button-text-color); /* Use variable */
+  border: var(--button-border); /* Use variable */
+  border-radius: var(--button-border-radius); /* Use variable */
+  cursor: pointer; /* Keep */
+  font-size: var(--button-font-size); /* Use variable */
+  text-decoration: none; /* Add for consistency if it behaves like a link */
+  line-height: normal; /* Ensure consistent line height */
 }
 
 .back-button:hover {
-  background-color: var(--button-hover-background-color); /* Use CSS variable */
+  background-color: var(--button-hover-background-color); /* Use variable */
+  /* color: var(--button-text-color); /* Usually text color doesn't change on this type of hover */
 }
 
 /* Specific adjustments if needed (commented out from prompt) */

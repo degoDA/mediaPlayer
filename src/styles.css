@@ -31,6 +31,15 @@
   /* Focus styling variables */
   --primary-color-rgb: 97, 218, 251; /* RGB for --primary-color: #61dafb */
   --focus-outline-color: var(--primary-color);
+
+  /* Standardized Button variables */
+  --button-border-radius: 4px;
+  --button-padding: 8px 15px;
+  --button-font-size: 0.9em;
+  /* --button-text-color: var(--on-primary-text-color); /* Already defined earlier */
+  /* --button-background-color: var(--primary-color); /* Already defined earlier */
+  /* --button-hover-background-color: var(--accent-color-hover); /* Already defined earlier */
+  --button-border: none;
 }
 
 /* General focus style for buttons and clickable card-like elements */
