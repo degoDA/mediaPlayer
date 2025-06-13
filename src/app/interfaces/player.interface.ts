@@ -22,5 +22,5 @@ export interface PlaybackAction {
 export interface MediaPlayerState {
   nowPlayingData?: NowPlayingData; // Optional if not always available
   elapsedSec?: string | number; // Optional
-  availableActions?: PlaybackAction; // Optional
+  availableActions?: string[]; // Changed from PlaybackAction
 }

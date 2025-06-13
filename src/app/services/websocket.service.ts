@@ -316,8 +316,10 @@ export class WebsocketService {
         // Response playback actions
         response?.Device?.MediaPlayerNeXt?.Players?.Player01?.AvailableActions
       ) {
-        this.mediaPlayerState.availableActions = response.Device.MediaPlayerNeXt.Players.Player01.AvailableActions as PlaybackAction;
-        this.reportUIMessageData({ mediaPlayerState: this.mediaPlayerState });
+        // Assuming the response data is already a string[] or compatible.
+        // MediaPlayerState.availableActions is now string[] | undefined.
+        this.mediaPlayerState.availableActions = response.Device.MediaPlayerNeXt.Players.Player01.AvailableActions;
+        this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } }); // Spread to help change detection
       }
 
       if (
