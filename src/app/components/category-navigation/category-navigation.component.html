@@ -7,21 +7,39 @@
   </div>
 
   <div class="scrollable-category-list-wrapper"> <!-- NEW WRAPPER -->
-    <div *ngIf="categories && categories.length > 0; else noCategories" class="category-list">
-      <div *ngFor="let category of categories" class="category-item" (click)="selectCategory(category)" [attr.aria-label]="'Select ' + category.browseItemName" tabindex="0">
-        <img *ngIf="category.urlIcon" [src]="category.urlIcon" alt="{{ category.browseItemName }} icon" class="category-icon">
-        <div class="category-info">
-          <span class="category-name">{{ category.browseItemName }}</span>
-          <small *ngIf="category.streamingMediaType" class="category-type">{{ category.streamingMediaType }}</small>
+    <div class="category-list" *ngIf="categories && categories.length > 0; else noCategoriesOrLoading"> <!-- This div will be the grid/flex container -->
+      <!-- Card structure for each category -->
+      <div class="card category-card"
+           *ngFor="let category of categories"
+           (click)="selectCategory(category)"
+           tabindex="0"
+            [attr.aria-label]="'Select ' + category.browseItemName">
+
+      <!-- Image section - only rendered if urlIcon exists -->
+      <div class="category-card-image-section" *ngIf="category.urlIcon">
+        <img [src]="category.urlIcon"
+             alt="{{ category.browseItemName }} icon"
+             class="category-icon">
+      </div>
+
+      <!-- Details section (name, type, indicator) -->
+      <div class="category-card-details-flex-column">
+        <div class="category-card-content-section">
+          <h4 class="category-name card-title">{{ category.browseItemName || 'Unnamed Category' }}</h4>
+          <p class="category-type card-subtitle" *ngIf="category.streamingMediaType">
+            {{ category.streamingMediaType }}
+          </p>
         </div>
-        <!-- Simple indicator for browsable vs playable, could be an icon -->
-        <span *ngIf="browsableContainerTypes.includes(category.streamingMediaType)" class="indicator">&rarr;</span>
+
+        <div class="category-card-indicator-section" *ngIf="browsableContainerTypes.includes(category.streamingMediaType?.toLowerCase() || '')">
+          <span class="indicator">&rarr;</span>
+        </div>
       </div>
     </div>
-
-    <ng-template #noCategories>
-      <p *ngIf="!currentProviderId">Please select a provider to see categories.</p>
-      <p *ngIf="currentProviderId && categories.length === 0">Loading categories or no categories found for the current selection.</p>
+    </div>
+    <ng-template #noCategoriesOrLoading>
+      <!-- Message for when categories array is empty or not yet loaded -->
+      <p class="loading-message">Loading categories or none available for the current selection.</p>
     </ng-template>
   </div>
 </div>

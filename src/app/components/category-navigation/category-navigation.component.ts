@@ -32,17 +32,32 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
-      if (data && data.categories) {
-        this.categories = data.categories;
-        // Simple title update logic: if there are categories, try to use the providerKey of the first one.
-        // This is a placeholder; a more robust solution might involve specific title properties from the backend.
-        if (this.categories.length > 0 && this.categories[0].providerKey) {
-          // A more descriptive title might come from a "parent" category if the backend provides it.
-          // For now, using providerKey or a generic term.
-          // this.currentTitle = `Content for ${this.categories[0].providerKey}`;
-        } else if (!this.currentProviderId) {
-          // this.currentTitle = 'Categories';
-        }
+      if (data.categories && Array.isArray(data.categories)) { // Ensure it's an array
+        // Sort the received categories alphabetically by browseItemName
+        const sortedCategories = [...data.categories].sort((a: CategoryItem, b: CategoryItem) => {
+          // Handle potential undefined or null browseItemName gracefully for robust sorting
+          const nameA = a.browseItemName?.toLowerCase() || '';
+          const nameB = b.browseItemName?.toLowerCase() || '';
+          if (nameA < nameB) {
+            return -1;
+          }
+          if (nameA > nameB) {
+            return 1;
+          }
+          return 0; // Names are equal
+        });
+        this.categories = sortedCategories;
+
+        // Current title logic (from original code, may need review post-sorting)
+        // if (this.categories.length > 0 && this.categories[0].providerKey) {
+        //   // this.currentTitle = `Content for ${this.categories[0].providerKey}`;
+        // } else if (!this.currentProviderId) {
+        //   // this.currentTitle = 'Categories';
+        // }
+
+      } else if (data.hasOwnProperty('categories') && (data.categories === null || (Array.isArray(data.categories) && data.categories.length === 0))) {
+        // Handle empty or null categories explicitly, e.g., clear existing
+        this.categories = [];
       }
       // If ProfileSelectionComponent calls browseProvider, categories for that provider will be loaded.
       // If not, and currentProviderId is set, we might need an initial load here.

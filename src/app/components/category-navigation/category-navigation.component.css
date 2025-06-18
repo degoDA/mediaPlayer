@@ -1,23 +1,22 @@
 .category-navigation-container {
   padding: 15px;
-  display: flex; /* Add */
-  flex-direction: column; /* Add */
-  height: 100%; /* Add - this assumes parent (.content-area) provides a constrainable height */
-  box-sizing: border-box; /* Add - to include padding in height calculation */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
   /* background-color: var(--background-color); /* Inherits */
   /* background-color: lightgreen !important; /* Removed temporary debugging */
 }
 
-/* Styles for the main title of the category navigation section */
+/* Styles for the main title of the category navigation section (h2) */
 .category-navigation-container h2 {
   color: var(--on-background-text-color);
-  margin-top: 0; /* Adjusted from prompt, original CSS had this for .header h2 */
+  margin-top: 0;
   margin-bottom: 15px;
-  text-align: center; /* Added from prompt */
-  font-size: 1.5em; /* Copied from original .header h2 style */
+  text-align: center;
+  font-size: 1.5em;
 }
 
-/* This replaces the old .header style for this component */
 .category-header {
   display: flex;
   justify-content: space-between;
@@ -26,94 +25,34 @@
   flex-shrink: 0; /* Ensure header doesn't shrink */
 }
 
-/* Ensuring the title within the flex header is styled if needed, though the h2 above might be the main title */
-.category-header .category-title-in-header { /* New class if there's a title *inside* this flex header */
+.category-header .category-title-in-header {
   margin: 0;
-  color: var(--on-background-text-color); /* Matching overall heading color */
-  font-size: 1.2em; /* Slightly smaller if it's a sub-header for the back button line */
+  color: var(--on-background-text-color);
+  font-size: 1.2em;
 }
 
-
 .back-button-catnav {
-  padding: var(--button-padding); /* Use variable */
-  font-size: var(--button-font-size); /* Use variable */
-  background-color: var(--button-background-color); /* Use variable */
-  color: var(--button-text-color); /* Use variable */
-  border: var(--button-border); /* Use variable */
-  border-radius: var(--button-border-radius); /* Use variable */
-  cursor: pointer; /* Keep */
-  text-decoration: none; /* Add for consistency */
-  line-height: normal; /* Ensure consistent line height */
-  /* margin-bottom is intentionally omitted as per previous reasoning */
-  transition: background-color 0.3s ease; /* Keep existing transition */
+  padding: var(--button-padding);
+  font-size: var(--button-font-size);
+  background-color: var(--button-background-color);
+  color: var(--button-text-color);
+  border: var(--button-border);
+  border-radius: var(--button-border-radius);
+  cursor: pointer;
+  text-decoration: none;
+  line-height: normal;
+  transition: background-color 0.3s ease;
 }
 
 .back-button-catnav:hover {
-  background-color: var(--button-hover-background-color); /* Use variable */
-  /* color: var(--button-text-color); */
+  background-color: var(--button-hover-background-color);
 }
 
-.back-button-catnav:disabled { /* Added from original back-button for consistency */
-  background-color: var(--border-color); /* Muted background */
+.back-button-catnav:disabled {
+  background-color: var(--border-color);
   color: var(--secondary-text-color);
   cursor: not-allowed;
   opacity: 0.7;
-}
-
-
-.category-list {
-  /* list-style: none; /* Not needed if not using <ul> or <ol> */
-  padding: 0;
-  margin: 0;
-  display: flex; /* Added from original category-list for consistency if items were flexed */
-  flex-direction: column; /* Added from original */
-  gap: 10px; /* Added from original */
-}
-
-.category-item {
-  background-color: var(--surface-color);
-  color: var(--on-surface-text-color);
-  padding: 12px 15px;
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  margin-bottom: 10px; /* Kept from prompt, original used gap on parent */
-  cursor: pointer;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
-  display: flex;
-  align-items: center;
-}
-
-.category-item:hover {
-  background-color: var(--accent-color-hover); /* Or a slightly lighter surface */
-  color: var(--on-primary-text-color); /* Text color change on hover for contrast */
-  box-shadow: var(--card-hover-box-shadow); /* Using card shadow for consistency */
-}
-
-.category-icon {
-  width: 40px;
-  height: 40px;
-  margin-right: 15px;
-  border-radius: 4px;
-  object-fit: cover;
-  background-color: var(--border-color);
-}
-
-.category-details { /* Renamed from category-info for clarity if needed */
-  flex-grow: 1;
-}
-
-.category-name {
-  font-weight: bold;
-  font-size: 1.05em; /* Slightly adjusted from 1.1em in original */
-  /* color: var(--on-surface-text-color); /* Inherited from .category-item */
-}
-
-.category-type {
-  font-size: 0.8em;
-  color: var(--secondary-text-color);
-  /* margin-left: 5px; /* Kept from prompt */
-  display: block; /* Added from original */
-  margin-top: 2px; /* Added from original */
 }
 
 .scrollable-category-list-wrapper {
@@ -122,29 +61,111 @@
   /* Removed flex-grow, min-height, position:relative, and debug styles */
 }
 
-/*
-   .category-list is the direct child of the scrollable wrapper.
-   It should not have conflicting height or overflow properties.
-   The existing display:flex, flex-direction:column, gap:10px, padding:0, margin:0 are fine.
-*/
-/* Removed duplicated/conflicting .category-list rule block that was here */
+/* Grid container for category cards */
+.category-list {
+  display: grid;
+  /* grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive columns */
+  grid-template-columns: repeat(2, 1fr); /* Strict two-column layout */
+   gap: 15px; /* Changed from 20px */
+  padding: 5px; /* Small padding around the grid */
+  margin: 0;
+}
 
+/* Individual category card styling */
+.card.category-card {
+  background-color: var(--card-background-color);
+  border: 1px solid var(--card-border-color);
+  border-radius: var(--button-border-radius); /* Using button-radius for consistency */
+   padding: 10px; /* Changed from 15px */
+  box-shadow: var(--card-box-shadow);
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+   flex-direction: row; /* Changed to row for side-by-side */
+   align-items: center; /* Align items vertically in the center of the row */
+   /* min-height: 150px; /* REMOVED */
+   /* text-align: center; /* Removed, text alignment handled by inner sections */
+   /* justify-content: space-between; /* Removed, flex items will manage their own space */
+}
+
+.card.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--card-hover-box-shadow);
+}
+
+.category-card-image-section {
+   width: 125px;
+   height: 120px;
+   flex-shrink: 0; /* Prevent image section from shrinking */
+   margin-right: 15px; /* Space between image and details */
+   display: flex; /* Keep for centering image if needed, or remove if img direct child */
+   align-items: center; /* Keep for centering image */
+   justify-content: center; /* Keep for centering image */
+}
+
+.category-icon { /* Applies to the <img> tag */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+ /* .category-icon-placeholder rule removed */
+
+ .category-card-details-flex-column { /* New rule */
+   display: flex;
+   flex-direction: column;
+   flex-grow: 1;
+  justify-content: center; /* Changed from space-between */
+   min-width: 0; /* For text ellipsis in children */
+   height: 100%; /* Try to make it take full card height */
+}
+
+.category-card-content-section {
+   /* flex-grow: 1; /* Removed, parent .category-card-details-flex-column handles flex grow */
+   /* display: flex; /* Not needed if text-align:left is sufficient */
+   /* flex-direction: column; /* Not needed */
+   /* justify-content: center; /* Not needed */
+   text-align: left; /* Align text to the left */
+   width: 100%;
+}
+
+.category-name.card-title { /* Targets h4 */
+   font-size: 1.2em; /* Increased font size */
+  color: var(--card-title-color);
+  margin: 0 0 5px 0;
+  word-break: break-word;
+}
+
+.category-type.card-subtitle { /* Targets p */
+   font-size: 0.9em; /* Increased font size */
+  color: var(--secondary-text-color);
+  margin: 0;
+  word-break: break-word;
+}
+
+.category-card-indicator-section {
+   /* margin-top: 10px; /* Replaced by flex justify-content on parent */
+   margin-top: auto; /* Pushes to bottom of the flex column */
+  width: 100%;
+   text-align: right; /* Align indicator to the right */
+}
 
 .indicator {
-  margin-left: auto; /* Pushes to the right */
   font-size: 1.2em;
   color: var(--primary-color);
 }
 
-/* Message for no categories - ensure it's styled appropriately within the scrollable or static view */
-.loading-message { /* Assuming this class is used on the <p> tag */
+.loading-message {
   color: var(--secondary-text-color);
   text-align: center;
-  padding: 20px; /* Give it some space */
+  padding: 20px;
   font-style: italic;
+  width: 100%; /* Ensure it spans grid width if needed */
 }
 
-/* Ensure the generic p selector doesn't override specific message styling if .loading-message is on the <p> */
-.category-navigation-container p.loading-message {
-  /* Specific overrides if needed, but above should cover it */
-}
+/* Remove or comment out old list-item specific styles if they were separate:
+.category-item { ... }
+.category-details { ... }
+The new .card.category-card and its inner sections replace these.
+*/

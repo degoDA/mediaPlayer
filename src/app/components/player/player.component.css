@@ -14,9 +14,12 @@
 
 .now-playing-info-flex-container {
   display: flex;
-  align-items: center; /* Center items vertically better for player */
+  align-items: center; /* Vertically center art, details, controls */
   gap: 15px;
   margin-bottom: 15px;
+  /* padding: 10px; /* Optional if not already on .player-component */
+  /* background-color: var(--surface-color); /* Already on .player-component */
+  /* border-radius: 5px; /* Already on .player-component */
 }
 
 .album-art-wrapper {
@@ -147,6 +150,16 @@
   display: flex;
   justify-content: center;
   gap: 10px;
+}
+
+.controls-section { /* Now a flex item in the row */
+  display: flex;
+  /* flex-direction: row; /* If main and secondary buttons are side-by-side */
+  /* OR */
+  flex-direction: column; /* If main buttons are above secondary, as current HTML implies */
+  align-items: center; /* Center button groups if column */
+  gap: 5px; /* Between main buttons container and secondary buttons container */
+  flex-shrink: 0; /* Prevent controls from being squished */
 }
 
 /* Base style for all icon control buttons */

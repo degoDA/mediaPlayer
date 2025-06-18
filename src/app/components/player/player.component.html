@@ -15,10 +15,44 @@
       <p class="station-name-text" *ngIf="mediaPlayerState?.nowPlayingData?.stationName">
         Station: {{ mediaPlayerState?.nowPlayingData?.stationName }}
       </p>
+      </p>
+    </div>
+
+    <div class="controls-section"> <!-- MOVED INSIDE -->
+      <div class="buttons-container"> <!-- Main buttons -->
+        <button class="control-button" (click)="sendPlaybackAction('Previous')" [disabled]="!isActionAvailable('Previous')" aria-label="Previous Track">
+          &#x23EE;
+        </button>
+        <button class="control-button play-pause"
+                (click)="sendPlaybackAction('PlayPause')"
+                [disabled]="!isActionAvailable('PlayPause')"
+                aria-label="Play or Pause">
+          <span *ngIf="isCurrentlyPausable">&#x23F8;</span><span *ngIf="!isCurrentlyPausable">&#x25B6;</span>
+        </button>
+        <button class="control-button" (click)="sendPlaybackAction('Next')" [disabled]="!isActionAvailable('Next')" aria-label="Next Track">
+          &#x23ED;
+        </button>
+      </div>
+      <div class="secondary-buttons-container" *ngIf="mediaPlayerState?.availableActions?.length"> <!-- Secondary buttons -->
+          <button *ngIf="isActionAvailable('Shuffle')"
+                  class="control-button secondary"
+                  (click)="sendPlaybackAction('Shuffle')"
+                  [class.active]="mediaPlayerState?.availableActions?.includes('Shuffle')"
+                  aria-label="Shuffle">
+            &#x1F500;
+          </button>
+          <button *ngIf="isActionAvailable('Repeat')"
+                  class="control-button secondary"
+                  (click)="sendPlaybackAction('Repeat')"
+                  [class.active]="mediaPlayerState?.availableActions?.includes('Repeat')"
+                  aria-label="Repeat">
+            &#x1F501;
+          </button>
+      </div>
     </div>
   </div>
 
-  <!-- Progress Bar Section (existing structure preserved) -->
+  <!-- Progress Bar Section remains below the info/controls flex container -->
   <div class="progress-section playback-controls"> <!-- Assuming playback-controls is the class for this section -->
     <div class="progress-bar-container">
       <span class="time-elapsed">{{ elapsedSecFormatted }}</span>
@@ -26,45 +60,6 @@
       <span class="time-total">{{ totalDurationFormatted }}</span>
     </div>
   </div>
-
-  <!-- Controls Section (existing structure preserved) -->
-  <div class="controls-section playback-controls"> <!-- Assuming playback-controls is the class for this section -->
-    <div class="buttons-container">
-      <button class="control-button" (click)="sendPlaybackAction('Previous')" [disabled]="!isActionAvailable('Previous')" aria-label="Previous Track">
-        &#x23EE; <!-- Previous Track icon -->
-      </button>
-
-      <button class="control-button play-pause"
-              (click)="sendPlaybackAction('PlayPause')"
-              [disabled]="!isActionAvailable('PlayPause')"
-              aria-label="Play or Pause">
-        <span *ngIf="isCurrentlyPausable">&#x23F8;</span> <!-- Pause Icon -->
-        <span *ngIf="!isCurrentlyPausable">&#x25B6;</span> <!-- Play Icon -->
-      </button>
-
-      <button class="control-button" (click)="sendPlaybackAction('Next')" [disabled]="!isActionAvailable('Next')" aria-label="Next Track">
-        &#x23ED; <!-- Next Track icon -->
-      </button>
-    </div>
-
-    <div class="secondary-buttons-container" *ngIf="mediaPlayerState?.availableActions?.length">
-        <button *ngIf="isActionAvailable('Shuffle')"
-                class="control-button secondary"
-                (click)="sendPlaybackAction('Shuffle')"
-                [class.active]="mediaPlayerState?.availableActions?.includes('Shuffle')"
-                aria-label="Shuffle">
-          &#x1F500; <!-- Shuffle icon -->
-        </button>
-        <button *ngIf="isActionAvailable('Repeat')"
-                class="control-button secondary"
-                (click)="sendPlaybackAction('Repeat')"
-                [class.active]="mediaPlayerState?.availableActions?.includes('Repeat')"
-                aria-label="Repeat">
-          &#x1F501; <!-- Repeat icon -->
-        </button>
-    </div>
-  </div>
-
 </div>
 
 <!-- Fallback content when no track is playing -->
