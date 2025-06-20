@@ -1,0 +1,10 @@
+<form (ngSubmit)="onSubmit()" class="search-form">
+  <input
+    type="text"
+    [(ngModel)]="currentSearchTerm"
+    name="searchTerm"
+    placeholder="Search for songs, artists, albums..."
+    class="search-input-field"
+    aria-label="Search media">
+  <button type="submit" class="search-button" [disabled]="!currentSearchTerm.trim()">Search</button>
+</form>

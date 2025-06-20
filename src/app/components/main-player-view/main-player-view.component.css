@@ -7,16 +7,35 @@
 }
 
 .app-header { /* Actual class name from HTML */
-  background-color: var(--surface-color); /* Use CSS variable */
-  color: var(--on-surface-text-color); /* Use CSS variable */
-  padding: 15px 20px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Darker shadow */
+  background-color: var(--surface-color);
+  color: var(--on-surface-text-color);
+  padding: 10px 15px; /* Adjusted padding */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  /* text-align: center; /* Removed for flex layout */
 }
 
-.player-header h2 { /* Or h1, depending on the HTML */
+/* .player-header h2 rule can be removed or updated if .header-title takes over */
+/* For now, let's assume .header-title styles will be specific enough */
+
+.header-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  /* max-width: 1200px; /* Optional: constrain width of header content */
+  /* margin: 0 auto; /* Center if max-width is set */
+}
+
+.header-title {
   margin: 0;
-  color: var(--on-surface-text-color); /* Ensure header text color */
+  color: var(--on-surface-text-color);
+  font-size: 1.5em; /* Or as desired */
+  flex-shrink: 0;
+}
+
+.header-search-container {
+  flex-grow: 1;
+  max-width: 450px;
 }
 
 .content-area {

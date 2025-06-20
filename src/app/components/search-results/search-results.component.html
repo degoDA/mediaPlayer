@@ -1,0 +1,30 @@
+<div class="search-results-container">
+  <div *ngIf="isLoading" class="loading-indicator">
+    <p>Searching...</p> <!-- Or a spinner component -->
+  </div>
+
+  <div *ngIf="!isLoading && results.length === 0" class="no-results-message">
+    <p>No results found.</p>
+  </div>
+
+  <ul class="results-list" *ngIf="!isLoading && results.length > 0">
+    <li *ngFor="let item of results"
+        class="result-item"
+        (click)="onSelectItem(item)"
+        tabindex="0"
+        (keydown.enter)="onSelectItem(item)"
+        [attr.aria-label]="'Select ' + (item.browseItemName || item.itemName)"> {/* Assuming browseItemName or itemName */}
+
+      <img *ngIf="item.urlIcon" [src]="item.urlIcon" alt="" class="result-icon">
+      <div *ngIf="!item.urlIcon" class="result-icon-placeholder">
+         <span>{{ (item.browseItemName || item.itemName) ? (item.browseItemName || item.itemName)![0] : '?' }}</span>
+      </div>
+
+      <div class="result-details">
+        <span class="result-name">{{ item.browseItemName || item.itemName }}</span> {/* Assuming browseItemName or itemName */}
+        <small *ngIf="item.streamingMediaType || item.mediaType" class="result-type">
+          ({{ item.streamingMediaType || item.mediaType }})</small> {/* Assuming streamingMediaType or mediaType */}
+      </div>
+    </li>
+  </ul>
+</div>

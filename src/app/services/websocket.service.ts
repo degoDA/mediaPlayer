@@ -435,6 +435,29 @@ export class WebsocketService {
         response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.Notification?.Widget?.Msg
       )
         this.reportUIMessageData({ msgNotification: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.Notification?.Widget?.Msg });
+
+      // Check for SearchMenu results
+      const searchMenuPath = response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu?.Categories?.Item01?.MenuDataItems;
+      if (searchMenuPath) {
+        const searchResults: CategoryItem[] = []; // Assuming results look like CategoryItems
+        for (const id in searchMenuPath) {
+          const itemData = searchMenuPath[id];
+          // Map itemData to CategoryItem structure (similar to how ProviderBrowseMenu categories are mapped)
+          const resultItem: CategoryItem = {
+            idCategorie: id, // Or use a proper ID from itemData if available
+            browseItemName: itemData.BrowseItemName,
+            signedData: itemData.SignedData,
+            urlIcon: itemData.UrlIcon,
+            browseKey: itemData.BrowseKey,
+            providerKey: itemData.MediaTypeMetaData?.ProviderKey, // Path might vary
+            streamingMediaType: itemData.StreamingMediaType,
+          };
+          searchResults.push(resultItem);
+        }
+        console.log('[WebsocketService] Processed SearchMenu results:', searchResults);
+        // Add a distinct property for search results to UIMessageDataSource
+        this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' });
+      }
     }
   }
 
@@ -446,5 +469,53 @@ export class WebsocketService {
 
   public get canNavigateBackInCategory(): boolean {
     return this.categoryHistoryStack.length > 0;
+  }
+
+  // Add this new public method
+  public searchMedia(
+    searchQuery: string,
+    // providerKey: string, // No longer needed if SearchProviderKey is "ALL"
+    profileKey: string,
+    // rcSessionId: string // rcSessionId is a class member, no need to pass
+    searchCategory: string = 'song' // Default search category to 'song'
+  ): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      console.warn('[WebsocketService] WebSocket not connected. Cannot send search request.');
+      return;
+    }
+    if (!this.rcSessionId) {
+      console.warn('[WebsocketService] No rcSessionId. Cannot send search request.');
+      return;
+    }
+    // profileKey is essential, using fallback to environment.profileKey if not provided.
+    const resolvedProfileKey = profileKey || environment.profileKey;
+    if (!resolvedProfileKey) {
+      console.warn('[WebsocketService] No profileKey available (neither passed nor in environment). Cannot send search request.');
+      return;
+    }
+
+    const msg = {
+      Device: {
+        MediaNavigation: {
+          RequestAction: {
+            RcSessionId: this.rcSessionId,
+            MsgId: uuidv1(), // Ensure uuidv1 is imported
+            ProfileKey: resolvedProfileKey,
+            MenuCategory: 'SearchMenu',
+            MenuCategoryOptions: {
+              SearchProviderKey: 'ALL', // Search across all providers
+              SearchText: searchQuery,
+              SearchCategory: searchCategory, // e.g., "song", "artist", "album"
+              ItemCount: 50, // Standard item count
+              ItemOffset: 0
+            }
+          }
+        }
+      }
+    };
+
+    console.log('[WebsocketService] Sending search request:', JSON.stringify(msg));
+    this.send(JSON.stringify(msg));
+    // No changes to history stack or currentCategoryRequestMessage for search.
   }
 }

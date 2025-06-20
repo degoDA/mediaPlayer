@@ -20,7 +20,8 @@ import { WebsocketService } from '../../services/websocket.service';
 import { MediaItem } from '../../interfaces/media.interface';
 import { CategoryItem } from '../../interfaces/category.interface';
 import { Profile } from '../../interfaces/profile.interface';
-import { NotificationComponent } from '../notification/notification.component'; // Added import
+import { NotificationComponent } from '../notification/notification.component';
+import { SearchContainerComponent } from '../search-container/search-container.component'; // Added import
 
 @Component({
   selector: 'app-main-player-view',
@@ -30,7 +31,8 @@ import { NotificationComponent } from '../notification/notification.component'; 
     ProfileSelectionComponent,
     CategoryNavigationComponent,
     PlayerComponent,
-    NotificationComponent // Added NotificationComponent to imports
+    NotificationComponent,
+    SearchContainerComponent // Added SearchContainerComponent to imports
   ],
   templateUrl: './main-player-view.component.html',
   styleUrls: ['./main-player-view.component.css']

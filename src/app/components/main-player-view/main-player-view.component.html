@@ -1,6 +1,12 @@
 <div class="main-player-view-container">
   <header class="app-header">
-    <h1>Media Player</h1>
+    <div class="header-content-wrapper"> <!-- New wrapper for flex layout -->
+      <h2 class="header-title">Media Player</h2> <!-- Potentially shorter title -->
+      <app-search-container
+        [currentProfileKey]="activeProfileIdForServiceView"
+        class="header-search-container">
+      </app-search-container>
+    </div>
   </header>
 
   <main class="content-area">
