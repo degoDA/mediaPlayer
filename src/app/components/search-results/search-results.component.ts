@@ -24,4 +24,35 @@ export class SearchResultsComponent {
   onSelectItem(item: CategoryItem | MediaItem): void {
     this.itemSelected.emit(item);
   }
+
+  // Add these methods to SearchResultsComponent class
+
+  public getItemName(item: CategoryItem | MediaItem): string {
+    // Using 'as any' for simplicity to access common-like properties after type narrowing via 'in' is too verbose for template.
+    // This assumes that items will have one of these properties for their primary display name.
+    if ('browseItemName' in item && item.browseItemName) {
+      return item.browseItemName;
+    }
+    if ('itemName' in item && (item as MediaItem).itemName) {
+      return (item as MediaItem).itemName!;
+    }
+    return 'Unknown Item';
+  }
+
+  public getItemType(item: CategoryItem | MediaItem): string | undefined {
+    if ('streamingMediaType' in item && item.streamingMediaType) {
+      return item.streamingMediaType;
+    }
+    if ('mediaType' in item && (item as MediaItem).mediaType) {
+      return (item as MediaItem).mediaType!;
+    }
+    return undefined;
+  }
+
+  // urlIcon is optional on both CategoryItem (from mapping) and MediaItem (from interface def)
+  // So direct access `item.urlIcon` in template with *ngIf should be fine.
+  // However, to be consistent, a helper could be made:
+  public getIconUrl(item: CategoryItem | MediaItem): string | undefined {
+      return item.urlIcon;
+  }
 }

@@ -13,17 +13,17 @@
         (click)="onSelectItem(item)"
         tabindex="0"
         (keydown.enter)="onSelectItem(item)"
-        [attr.aria-label]="'Select ' + (item.browseItemName || item.itemName)"> {/* Assuming browseItemName or itemName */}
+        [attr.aria-label]="'Select ' + getItemName(item)">
 
-      <img *ngIf="item.urlIcon" [src]="item.urlIcon" alt="" class="result-icon">
-      <div *ngIf="!item.urlIcon" class="result-icon-placeholder">
-         <span>{{ (item.browseItemName || item.itemName) ? (item.browseItemName || item.itemName)![0] : '?' }}</span>
+      <img *ngIf="getIconUrl(item)" [src]="getIconUrl(item)" alt="" class="result-icon">
+      <div *ngIf="!getIconUrl(item)" class="result-icon-placeholder">
+         <span>{{ getItemName(item) ? getItemName(item)[0] : '?' }}</span>
       </div>
 
       <div class="result-details">
-        <span class="result-name">{{ item.browseItemName || item.itemName }}</span> {/* Assuming browseItemName or itemName */}
-        <small *ngIf="item.streamingMediaType || item.mediaType" class="result-type">
-          ({{ item.streamingMediaType || item.mediaType }})</small> {/* Assuming streamingMediaType or mediaType */}
+        <span class="result-name">{{ getItemName(item) }}</span>
+        <small *ngIf="getItemType(item)" class="result-type">
+          ({{ getItemType(item) }})</small>
       </div>
     </li>
   </ul>

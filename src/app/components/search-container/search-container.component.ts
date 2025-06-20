@@ -62,7 +62,16 @@ export class SearchContainerComponent implements OnInit, OnDestroy {
   handleItemSelected(item: CategoryItem | MediaItem): void {
     console.log('[SearchContainerComponent] Item selected:', item);
 
-    const type = item.streamingMediaType?.toLowerCase() || (item as MediaItem).mediaType?.toLowerCase();
+    let type: string | undefined;
+    if ('streamingMediaType' in item && item.streamingMediaType) {
+      // It's likely a CategoryItem or has CategoryItem-like properties
+      type = item.streamingMediaType.toLowerCase();
+    } else if ('mediaType' in item && (item as MediaItem).mediaType) {
+      // It's likely a MediaItem or has MediaItem-like properties
+      // Need to cast to MediaItem here if mediaType is specific to it and not on CategoryItem
+      type = (item as MediaItem).mediaType!.toLowerCase();
+    }
+    // 'type' will be undefined if neither property is found or if they are null/empty
 
     if (type === 'track' || type === 'song' || type === 'station') {
       this.websocketService.playback(item);
