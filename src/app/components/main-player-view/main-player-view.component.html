@@ -2,10 +2,9 @@
   <header class="app-header">
     <div class="header-content-wrapper"> <!-- New wrapper for flex layout -->
       <h2 class="header-title">Media Player</h2> <!-- Potentially shorter title -->
-      <app-search-container
-        [currentProfileKey]="activeProfileIdForServiceView"
-        class="header-search-container">
-      </app-search-container>
+      <button class="search-icon-button" (click)="toggleFullScreenSearch()" aria-label="Open search">
+        <span class="search-icon-gfx">&#x1F50D;</span> <!-- Magnifying glass icon 🔍 -->
+      </button>
     </div>
   </header>
 
@@ -61,4 +60,11 @@
     [message]="currentNotification!"
     *ngIf="currentNotification">
   </app-notification>
+
+  <!-- Add FullScreenSearchComponent here -->
+  <app-full-screen-search
+    *ngIf="showFullScreenSearch"
+    (closeSearch)="toggleFullScreenSearch()"
+    [currentProfileKey]="activeProfileIdForServiceView">
+  </app-full-screen-search>
 </div>

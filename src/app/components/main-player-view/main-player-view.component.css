@@ -33,9 +33,31 @@
   flex-shrink: 0;
 }
 
-.header-search-container {
-  flex-grow: 1;
-  max-width: 450px;
+/* Removed .header-search-container styles */
+
+.search-icon-button {
+  background-color: transparent;
+  border: none;
+  color: var(--on-surface-text-color); /* Or --primary-color for more emphasis */
+  font-size: 1.5em; /* Adjust size of icon container */
+  padding: 5px;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 50%; /* Optional: make it circular */
+  width: 40px; /* Example size */
+  height: 40px; /* Example size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-icon-button:hover {
+  background-color: rgba(var(--primary-color-rgb, 97, 218, 251), 0.1); /* Subtle hover */
+}
+
+.search-icon-gfx {
+  /* Specific styling for the icon character if needed, e.g., font weight */
+  display: inline-block; /* Helps with alignment */
 }
 
 .content-area {

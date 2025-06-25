@@ -21,7 +21,7 @@ import { MediaItem } from '../../interfaces/media.interface';
 import { CategoryItem } from '../../interfaces/category.interface';
 import { Profile } from '../../interfaces/profile.interface';
 import { NotificationComponent } from '../notification/notification.component';
-import { SearchContainerComponent } from '../search-container/search-container.component'; // Added import
+import { FullScreenSearchComponent } from '../full-screen-search/full-screen-search.component'; // Added import
 
 @Component({
   selector: 'app-main-player-view',
@@ -32,7 +32,7 @@ import { SearchContainerComponent } from '../search-container/search-container.c
     CategoryNavigationComponent,
     PlayerComponent,
     NotificationComponent,
-    SearchContainerComponent // Added SearchContainerComponent to imports
+    FullScreenSearchComponent // Added FullScreenSearchComponent
   ],
   templateUrl: './main-player-view.component.html',
   styleUrls: ['./main-player-view.component.css']
@@ -43,6 +43,7 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
   activeProfileIdForServiceView?: string;
   selectedPlayableItem?: MediaItem | CategoryItem;
 
+  showFullScreenSearch: boolean = false; // Added property
   currentNotification: string | null = null;
   private notificationTimeout: any = null;
   private uiSubscription: any; // To hold the subscription
@@ -129,5 +130,9 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
     // activeProfileIdForServiceView should still hold the ID of the profile whose services we want to see.
     // ProfileSelectionComponent will use this via its autoSelectProfileId input.
     this.currentView = 'profiles';
+  }
+
+  toggleFullScreenSearch(): void {
+    this.showFullScreenSearch = !this.showFullScreenSearch;
   }
 }

@@ -1,0 +1,34 @@
+<div class="full-screen-search-overlay" (click)="close()"> <!-- Click on overlay closes -->
+  <div class="search-panel" (click)="$event.stopPropagation()"> <!-- Prevent overlay click when clicking panel -->
+    <button class="close-button" (click)="close()" aria-label="Close search">&times;</button>
+
+    <form (ngSubmit)="onSearchSubmit()" class="search-form-full">
+      <div class="input-row">
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          name="searchQuery"
+          placeholder="Search..."
+          class="search-input-field-full"
+          aria-label="Search query"
+          autofocus>
+
+        <select [(ngModel)]="selectedSearchCategory" name="searchCategory" class="search-category-select" aria-label="Search category">
+          <option *ngFor="let category of searchCategories" [value]="category">{{ category | titlecase }}</option>
+        </select>
+
+        <button type="submit" class="search-button-full" [disabled]="!searchQuery.trim() || isLoading">
+          <span *ngIf="!isLoading">Search</span>
+          <span *ngIf="isLoading">Searching...</span>
+        </button>
+      </div>
+    </form>
+
+    <app-search-results
+      class="search-results-area"
+      [results]="searchResults"
+      [isLoading]="isLoading"
+      (itemSelected)="onItemSelected($event)">
+    </app-search-results>
+  </div>
+</div>
