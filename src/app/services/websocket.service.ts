@@ -437,26 +437,55 @@ export class WebsocketService {
         this.reportUIMessageData({ msgNotification: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.Notification?.Widget?.Msg });
 
       // Check for SearchMenu results
-      const searchMenuPath = response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu?.Categories?.Item01?.MenuDataItems;
-      if (searchMenuPath) {
-        const searchResults: CategoryItem[] = []; // Assuming results look like CategoryItems
-        for (const id in searchMenuPath) {
-          const itemData = searchMenuPath[id];
-          // Map itemData to CategoryItem structure (similar to how ProviderBrowseMenu categories are mapped)
+      const searchMenuDataItemsArray = response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu?.Categories?.Item01?.MenuDataItems;
+
+      if (searchMenuDataItemsArray && Array.isArray(searchMenuDataItemsArray)) {
+        const searchResults: CategoryItem[] = [];
+        for (const itemData of searchMenuDataItemsArray) { // Changed from for...in to for...of
+          if (!itemData) continue; // Skip if itemData itself is null/undefined in the array
+
           const resultItem: CategoryItem = {
-            idCategorie: id, // Or use a proper ID from itemData if available
-            browseItemName: itemData.BrowseItemName,
+            idCategorie: itemData.BrowseKey || `search_item_${Math.random().toString(36).substr(2, 9)}`, // Use BrowseKey or generate an ID
+            browseItemName: itemData.BrowseItemName || 'Unknown Item',
             signedData: itemData.SignedData,
             urlIcon: itemData.UrlIcon,
             browseKey: itemData.BrowseKey,
-            providerKey: itemData.MediaTypeMetaData?.ProviderKey, // Path might vary
-            streamingMediaType: itemData.StreamingMediaType,
+            providerKey: itemData.MediaTypeMetaData?.ProviderKey,
+            streamingMediaType: itemData.StreamingMediaType || 'unknown',
+            artistName: itemData.MediaTypeMetaData?.ArtistName,
+            albumName: itemData.MediaTypeMetaData?.AlbumName
           };
           searchResults.push(resultItem);
         }
-        console.log('[WebsocketService] Processed SearchMenu results:', searchResults);
-        // Add a distinct property for search results to UIMessageDataSource
+        console.log('[WebsocketService] Processed SearchMenu results (from array):', searchResults);
         this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' });
+      } else if (searchMenuDataItemsArray && typeof searchMenuDataItemsArray === 'object' && !Array.isArray(searchMenuDataItemsArray)) {
+        // This block handles the case where MenuDataItems is an OBJECT of items, not an array
+        // This was the previous assumption for browse/search results based on existing code.
+        const searchResults: CategoryItem[] = [];
+        for (const id in searchMenuDataItemsArray) { // Iterate object keys
+            const itemData = searchMenuDataItemsArray[id];
+            if (!itemData) continue;
+
+            const resultItem: CategoryItem = {
+                idCategorie: id, // Use the object key as ID
+                browseItemName: itemData.BrowseItemName || 'Unknown Item',
+                signedData: itemData.SignedData,
+                urlIcon: itemData.UrlIcon,
+                browseKey: itemData.BrowseKey,
+                providerKey: itemData.MediaTypeMetaData?.ProviderKey,
+                streamingMediaType: itemData.StreamingMediaType || 'unknown',
+                artistName: itemData.MediaTypeMetaData?.ArtistName,
+                albumName: itemData.MediaTypeMetaData?.AlbumName
+            };
+            searchResults.push(resultItem);
+        }
+        console.log('[WebsocketService] Processed SearchMenu results (from object):', searchResults);
+        this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' });
+      } else if (response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu) {
+        // Handle case where SearchMenu path exists but MenuDataItems might be missing or not an array/object (e.g. no results)
+        console.warn('[WebsocketService] SearchMenu results MenuDataItems not found or not a recognized structure. Response path existed.', response.Device.MediaNavigation.RegisteredClientMenus[this.rcSessionId].MenuUpdates.SearchMenu);
+        this.reportUIMessageData({ searchResults: [], type: 'searchResults' }); // Emit empty results
       }
     }
   }

@@ -89,22 +89,26 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
     }
     // Else, if it's a directly playable type (like a Track or a Station)
     else if (this.playableMediaTypes.some(type => mediaType?.includes(type.toLowerCase()))) {
+      const finalProviderKey = category.providerKey || this.currentProviderId;
+
+      if (!finalProviderKey) {
+        console.error('[CategoryNavigationComponent] Cannot determine providerKey for playable item. Category lacks providerKey and currentProviderId is not set. Item:', JSON.stringify(category));
+        return; // Stop processing if no providerKey can be found
+      }
+
       const playableItem: MediaItem = {
-        idMedia: category.idCategorie, // Assuming idCategorie can serve as a unique ID for media
+        idMedia: category.idCategorie,
         itemName: category.browseItemName,
         signedData: category.signedData,
-        urlIcon: category.urlIcon, // Optional in MediaItem, so it's fine if category.urlIcon is undefined
-        browseKey: category.browseKey, // Crucial for playback
-        providerKey: category.providerKey,
-        mediaType: category.streamingMediaType // This maps directly for now, could be refined
-                                              // e.g., map 'Station' to 'Track' or a generic 'Playable' if MediaItem.mediaType has stricter enum
+        urlIcon: category.urlIcon,
+        browseKey: category.browseKey,
+        providerKey: finalProviderKey, // Use the determined, non-undefined providerKey
+        mediaType: category.streamingMediaType
       };
 
       this.itemSelected.emit(playableItem);
-      // Ensure this.websocketService.playback can handle a MediaItem.
-      // The WebsocketService was updated to playback(item: CategoryItem | MediaItem)
       this.websocketService.playback(playableItem);
-      this.currentTitle = playableItem.itemName; // Update title with consistent item name
+      this.currentTitle = playableItem.itemName;
     }
     // Fallback for types not explicitly handled: attempt to browse.
     else {
