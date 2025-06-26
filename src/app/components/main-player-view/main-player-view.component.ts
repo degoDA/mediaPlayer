@@ -41,9 +41,10 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
   currentView: 'profiles' | 'categories' | 'player' = 'profiles';
   selectedProviderId?: string;
   activeProfileIdForServiceView?: string;
+  activeProfileForSearchContext?: Profile | null; // Added property
   selectedPlayableItem?: MediaItem | CategoryItem;
 
-  showFullScreenSearch: boolean = false; // Added property
+  showFullScreenSearch: boolean = false;
   currentNotification: string | null = null;
   private notificationTimeout: any = null;
   private uiSubscription: any; // To hold the subscription
@@ -95,11 +96,20 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
   onProviderSelected(data: { providerId: string, profile: Profile }): void { // Signature updated
     this.selectedProviderId = data.providerId;
     if (data.profile && data.profile.idProfile) {
-      this.activeProfileIdForServiceView = data.profile.idProfile;
+      this.activeProfileIdForServiceView = data.profile.idProfile; // Used by CategoryNavigation
+      this.activeProfileForSearchContext = data.profile; // Set this for the new search input
     }
     this.currentView = 'categories';
     // ProfileSelectionComponent already calls browseProvider
     console.log('Provider selected in main view:', data.providerId);
+  }
+
+  onProfileContextUpdated(profile: Profile | null): void {
+    this.activeProfileForSearchContext = profile;
+    // If profile becomes null, maybe clear activeProfileIdForServiceView too if search should be disabled.
+    // For now, this just updates the search context.
+    // If going back to profiles list (profile is null), and then user selects a provider,
+    // onProviderSelected will repopulate activeProfileForSearchContext.
   }
 
   ngOnDestroy(): void {

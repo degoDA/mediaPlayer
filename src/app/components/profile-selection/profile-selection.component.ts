@@ -14,6 +14,7 @@ import { Profile, Provider } from '../../interfaces/profile.interface';
 export class ProfileSelectionComponent implements OnInit, OnDestroy {
   @Output() providerSelected = new EventEmitter<{ providerId: string, profile: Profile }>();
   @Input() autoSelectProfileId?: string;
+  @Output() profileContextUpdated = new EventEmitter<Profile | null>(); // Added
   profiles: Profile[] = [];
   selectedProfile?: Profile;
   servicesForSelectedProfile: Provider[] = [];
@@ -55,6 +56,7 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   selectProfile(profile: Profile): void {
     this.selectedProfile = profile;
     this.servicesForSelectedProfile = profile.providers || [];
+    this.profileContextUpdated.emit(this.selectedProfile); // Added
     // this.autoSelectProfileId = undefined; // Let parent control this input
   }
 
@@ -68,6 +70,7 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   }
 
   showProfiles(): void {
+    this.profileContextUpdated.emit(null); // Added
     this.selectedProfile = undefined;
     this.servicesForSelectedProfile = [];
     // this.autoSelectProfileId = undefined; // Let parent control this input

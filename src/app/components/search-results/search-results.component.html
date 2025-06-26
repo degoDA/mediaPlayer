@@ -22,8 +22,8 @@
 
       <div class="result-details">
         <span class="result-name">{{ getItemName(item) }}</span>
-        <small *ngIf="getItemType(item)" class="result-type">
-          ({{ getItemType(item) }})</small>
+        <small *ngIf="getItemType(item)" class="result-type">({{ getItemType(item) }})</small>
+        <small class="result-provider-key" *ngIf="item.providerKey">Provider: {{ getProviderDisplayName(item.providerKey) }}</small>
       </div>
     </li>
   </ul>

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, HostListener, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core'; // Add ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // For ngModel
 import { Subscription } from 'rxjs';
@@ -14,22 +14,23 @@ import { environment } from '../../../environments/environment'; // For fallback
   imports: [CommonModule, FormsModule, SearchResultsComponent],
   templateUrl: './full-screen-search.component.html',
   styleUrls: ['./full-screen-search.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush // Added as per prompt
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FullScreenSearchComponent implements OnInit, OnDestroy {
-  @Input() currentProfileKey?: string;
+  @Input() activeProfile?: Profile | null; // Changed from currentProfileKey
   @Output() closeSearch = new EventEmitter<void>();
 
   searchQuery: string = '';
-  selectedSearchCategory: string = 'song'; // Default as per example
+  selectedSearchCategory: string = 'artist'; // Changed default value
   searchCategories: string[] = ["artist", "song", "album", "station", "playlist", "podcastseries"];
 
   searchResults: (CategoryItem | MediaItem)[] = [];
   isLoading: boolean = false;
+  showResults: boolean = false; // ADDED/ENSURED THIS LINE
 
   private uiSubscription?: Subscription;
 
-  constructor(private websocketService: WebsocketService) {}
+  constructor(private websocketService: WebsocketService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
@@ -42,20 +43,24 @@ export class FullScreenSearchComponent implements OnInit, OnDestroy {
           return 0;
         });
         this.isLoading = false;
+        this.showResults = true;
+        this.cdr.detectChanges(); // ADD THIS LINE
       }
     });
   }
 
   onSearchSubmit(): void {
     if (!this.searchQuery.trim()) {
-      this.searchResults = []; // Clear results if query is empty
-      this.isLoading = false; // Ensure loading is false if query is empty
+      this.searchResults = [];
+      this.isLoading = false;
       return;
     }
 
-    const profileKeyToUse = this.currentProfileKey || environment.profileKey;
+    // Use activeProfile.idProfile or fallback to environment.profileKey
+    const profileKeyToUse = this.activeProfile?.idProfile || environment.profileKey;
+
     if (!profileKeyToUse) {
-      console.warn('[FullScreenSearchComponent] No profileKey available for search.');
+      console.warn('[FullScreenSearchComponent] No profileKey available from activeProfile or environment for search.');
       this.isLoading = false;
       return;
     }

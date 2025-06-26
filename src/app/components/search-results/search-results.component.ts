@@ -1,7 +1,8 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CategoryItem } from '../../interfaces/category.interface'; // Assuming results are like CategoryItem
-import { MediaItem } from '../../interfaces/media.interface';     // Or MediaItem
+import { CategoryItem } from '../../interfaces/category.interface';
+import { MediaItem } from '../../interfaces/media.interface';
+import { Provider } from '../../interfaces/profile.interface'; // Added import
 
 @Component({
   selector: 'app-search-results',
@@ -14,6 +15,7 @@ import { MediaItem } from '../../interfaces/media.interface';     // Or MediaIte
 export class SearchResultsComponent {
   @Input() results: (CategoryItem | MediaItem)[] = [];
   @Input() isLoading: boolean = false;
+  @Input() providersList: Provider[] | undefined = []; // Added Input
   @Output() itemSelected = new EventEmitter<CategoryItem | MediaItem>();
 
   // Helper to determine item type if needed, though not strictly necessary if structure is compatible
@@ -54,5 +56,16 @@ export class SearchResultsComponent {
   // However, to be consistent, a helper could be made:
   public getIconUrl(item: CategoryItem | MediaItem): string | undefined {
       return item.urlIcon;
+  }
+
+  public getProviderDisplayName(providerKey?: string): string {
+    if (!providerKey) {
+      return 'N/A'; // Or an empty string, or 'Unknown Provider'
+    }
+    if (!this.providersList || this.providersList.length === 0) {
+      return providerKey; // Fallback to key if list is not available
+    }
+    const provider = this.providersList.find(p => p.idService === providerKey);
+    return provider?.name || providerKey; // Fallback to key if not found in list or name is missing
   }
 }

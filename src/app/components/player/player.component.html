@@ -55,7 +55,7 @@
   <!-- Progress Bar Section remains below the info/controls flex container -->
   <div class="progress-section playback-controls"> <!-- Assuming playback-controls is the class for this section -->
     <div class="progress-bar-container">
-      <span class="time-elapsed">{{ elapsedSecFormatted }}</span>
+      <span class="time-elapsed">{{ currentFormattedElapsedTime }}</span>
       <progress class="playback-progress" [value]="playbackProgress" max="100"></progress>
       <span class="time-total">{{ totalDurationFormatted }}</span>
     </div>

@@ -75,6 +75,16 @@
   text-overflow: ellipsis;
 }
 
+.result-provider-key {
+  display: block; /* Ensure it takes its own line if desired, or inline-block */
+  font-size: 0.75em; /* Smaller than type */
+  color: var(--secondary-text-color); /* Use a muted theme color */
+  margin-top: 3px; /* Space above it */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .result-type {
   font-size: 0.85em;
   color: var(--secondary-text-color);

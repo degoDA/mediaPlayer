@@ -38,11 +38,11 @@
 .search-icon-button {
   background-color: transparent;
   border: none;
-  color: var(--on-surface-text-color); /* Or --primary-color for more emphasis */
-  font-size: 1.5em; /* Adjust size of icon container */
-  padding: 5px;
+  color: var(--primary-color); /* This color will be used by the SVG's 'currentColor' fill */
+  /* font-size: 1.5em; /* REMOVE this if it was for text icon */
+  padding: 5px; /* Padding around the SVG */
   cursor: pointer;
-  line-height: 1;
+  line-height: 1; /* Reset line height */
   border-radius: 50%; /* Optional: make it circular */
   width: 40px; /* Example size */
   height: 40px; /* Example size */
@@ -52,13 +52,17 @@
 }
 
 .search-icon-button:hover {
-  background-color: rgba(var(--primary-color-rgb, 97, 218, 251), 0.1); /* Subtle hover */
+  background-color: rgba(var(--primary-color-rgb, 97, 218, 251), 0.1);
 }
 
-.search-icon-gfx {
-  /* Specific styling for the icon character if needed, e.g., font weight */
-  display: inline-block; /* Helps with alignment */
+.search-svg-icon { /* Style the SVG if needed */
+  width: 22px;  /* Control SVG size via CSS */
+  height: 22px; /* Control SVG size via CSS */
+  display: block; /* Ensure it's block for sizing */
 }
+
+/* Remove .search-icon-gfx if it's no longer used */
+/* .search-icon-gfx { ... } */
 
 .content-area {
   flex-grow: 1;
