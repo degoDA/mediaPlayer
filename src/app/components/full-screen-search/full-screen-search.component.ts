@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { WebsocketService } from '../../services/websocket.service';
 import { CategoryItem } from '../../interfaces/category.interface';
 import { MediaItem } from '../../interfaces/media.interface';
+import { Profile, Provider } from '../../interfaces/profile.interface'; // Added import
 import { SearchResultsComponent } from '../search-results/search-results.component'; // To embed results
 import { environment } from '../../../environments/environment'; // For fallback profileKey
 
