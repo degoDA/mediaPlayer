@@ -13,10 +13,10 @@ import { MediaItem } from '../../interfaces/media.interface'; // Assuming MediaI
   styleUrls: ['./category-navigation.component.css']
 })
 export class CategoryNavigationComponent implements OnInit, OnDestroy {
-  @Input() currentProviderId?: string; // May not be directly used if ProfileSelection handles initial browse
+  @Input() currentProviderId?: string;
   @Output() itemSelected = new EventEmitter<CategoryItem | MediaItem>();
   @Output() categorySelected = new EventEmitter<CategoryItem>();
-  @Output() returnToServiceSelection = new EventEmitter<void>();
+  // @Output() returnToServiceSelection = new EventEmitter<void>(); // Removed
 
   categories: CategoryItem[] = [];
   private uiSubscription!: Subscription;
@@ -119,18 +119,6 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
     }
   }
 
-  goBack(): void {
-    if (!this.websocketService.selectBackCategory()) {
-      // If selectBackCategory returns false (WebSocket service cannot go back further in its own history)
-      this.returnToServiceSelection.emit();
-    }
-    // If selectBackCategory() returned true, the WebsocketService handled the back navigation
-    // and will trigger a new data emission that the component's subscription will pick up.
-  }
-
-  get isAtRootLevel(): boolean {
-    // This getter now indicates if the WebSocket service has no more history.
-    // If true, the goBack() method will emit 'returnToServiceSelection'.
-    return !this.websocketService.canNavigateBackInCategory;
-  }
+  // goBack(): void method removed
+  // isAtRootLevel getter removed
 }

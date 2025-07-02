@@ -1,12 +1,16 @@
 <div class="main-player-view-container">
   <header class="app-header">
     <div class="header-content-wrapper"> <!-- New wrapper for flex layout -->
-      <h2 class="header-title">Media Player</h2> <!-- Potentially shorter title -->
-      <button class="search-icon-button" (click)="toggleFullScreenSearch()" aria-label="Open search">
-        <svg class="search-svg-icon" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px">
+      <button class="header-main-back-button" (click)="goAppBack()" aria-label="Go back">
+        &lt; Back
+      </button>
+      <!-- <h2 class="header-title">Media Player</h2> Removed -->
+      <button class="search-toggle-button" (click)="toggleFullScreenSearch()" aria-label="Search"> <!-- Updated class and aria-label -->
+        <svg class="search-svg-icon" viewBox="0 0 24 24" fill="currentColor" width="22px" height="22px">
           <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
           <path d="M0 0h24v24H0z" fill="none"/>
         </svg>
+        <span class="search-label">Search</span>
       </button>
     </div>
   </header>
@@ -24,8 +28,8 @@
         *ngSwitchCase="'categories'"
         [currentProviderId]="selectedProviderId"
         (itemSelected)="onPlayableItemSelected($event)"
-        (categorySelected)="onCategoryNavigation($event)"
-        (returnToServiceSelection)="onReturnToServiceSelection()">
+        (categorySelected)="onCategoryNavigation($event)">
+        <!-- (returnToServiceSelection) binding removed -->
       </app-category-navigation>
 
       <!--
@@ -41,8 +45,8 @@
         *ngSwitchCase="'player'"
         [currentProviderId]="selectedProviderId"
         (itemSelected)="onPlayableItemSelected($event)"
-        (categorySelected)="onCategoryNavigation($event)"
-        (returnToServiceSelection)="onReturnToServiceSelection()">
+        (categorySelected)="onCategoryNavigation($event)">
+        <!-- (returnToServiceSelection) binding removed -->
       </app-category-navigation>
 
     </div>

@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'; // Added OnDestroy, ChangeDetectorRef
-import { CommonModule } from '@angular/common';
-import { environment } from '../../../environments/environment'; // Corrected import path
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, Location } from '@angular/common'; // Added Location
+import { environment } from '../../../environments/environment';
 
 // Assuming environment.ts exists and has these properties.
 // In a real Angular app, this would be: import { environment } from '../../../environments/environment';
@@ -51,7 +51,8 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
 
   constructor(
     public websocketService: WebsocketService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private location: Location // Added location
   ) {}
 
   ngOnInit(): void {
@@ -136,13 +137,13 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
     console.log('Navigating to category in main view:', category.browseItemName);
   }
 
-  onReturnToServiceSelection(): void {
-    // activeProfileIdForServiceView should still hold the ID of the profile whose services we want to see.
-    // ProfileSelectionComponent will use this via its autoSelectProfileId input.
-    this.currentView = 'profiles';
-  }
+  // onReturnToServiceSelection(): void method removed
 
   toggleFullScreenSearch(): void {
     this.showFullScreenSearch = !this.showFullScreenSearch;
+  }
+
+  goAppBack(): void {
+    this.location.back();
   }
 }

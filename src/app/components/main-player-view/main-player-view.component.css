@@ -26,39 +26,67 @@
   /* margin: 0 auto; /* Center if max-width is set */
 }
 
-.header-title {
+/* .header-title { // Removed/Commented out
   margin: 0;
   color: var(--on-surface-text-color);
-  font-size: 1.5em; /* Or as desired */
+  font-size: 1.5em;
   flex-shrink: 0;
+} */
+
+.header-main-back-button {
+  padding: var(--button-padding);
+  font-size: var(--button-font-size); /* Use standard button font size */
+  background-color: transparent; /* Or var(--button-background-color) if you want it filled */
+  color: var(--on-surface-text-color); /* Text color for header */
+  border: 1px solid transparent; /* Or var(--button-border) if you want standard border */
+  /* If transparent bg, border might be good: border: 1px solid var(--on-surface-text-color); */
+  border-radius: var(--button-border-radius);
+  cursor: pointer;
+  text-decoration: none;
+  line-height: normal;
+  margin-right: auto; /* Pushes other content (search button) to the right */
+}
+
+.header-main-back-button:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1); /* Subtle hover for transparent button */
+  /* Or if filled: background-color: var(--button-hover-background-color); */
+  /* color: var(--primary-color); /* Optional: change text color on hover */
 }
 
 /* Removed .header-search-container styles */
 
-.search-icon-button {
+.search-toggle-button {
+  /* For a more subtle header button that's not primary action: */
+  color: var(--on-surface-text-color); /* Text color matching header text */
   background-color: transparent;
-  border: none;
-  color: var(--primary-color); /* This color will be used by the SVG's 'currentColor' fill */
-  /* font-size: 1.5em; /* REMOVE this if it was for text icon */
-  padding: 5px; /* Padding around the SVG */
+  border: 1px solid transparent; /* Or var(--button-border) */
+
+  padding: var(--button-padding); /* Use standard padding */
   cursor: pointer;
-  line-height: 1; /* Reset line height */
-  border-radius: 50%; /* Optional: make it circular */
-  width: 40px; /* Example size */
-  height: 40px; /* Example size */
+  line-height: normal; /* From standard button */
+  border-radius: var(--button-border-radius); /* Standard radius */
+
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px; /* Space between icon and text */
+  /* font-size: var(--button-font-size); /* Let icon and label define their own if needed, or set a base */
 }
 
-.search-icon-button:hover {
-  background-color: rgba(var(--primary-color-rgb, 97, 218, 251), 0.1);
+.search-toggle-button:hover {
+  background-color: rgba(var(--primary-color-rgb, 97, 218, 251), 0.1); /* Subtle hover */
+  /* Or if it's a filled button: var(--button-hover-background-color) */
 }
 
-.search-svg-icon { /* Style the SVG if needed */
-  width: 22px;  /* Control SVG size via CSS */
-  height: 22px; /* Control SVG size via CSS */
-  display: block; /* Ensure it's block for sizing */
+.search-svg-icon {
+  width: 18px;  /* Adjust size as needed for text button */
+  height: 18px; /* Adjust size as needed for text button */
+  fill: currentColor; /* Inherits color from button's text color */
+  flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+.search-label {
+  font-size: var(--button-font-size); /* Match other button text */
+  /* color: inherit; /* Inherits from button */
 }
 
 /* Remove .search-icon-gfx if it's no longer used */
