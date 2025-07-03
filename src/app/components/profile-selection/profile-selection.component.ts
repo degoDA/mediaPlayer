@@ -14,7 +14,8 @@ import { Profile, Provider } from '../../interfaces/profile.interface';
 export class ProfileSelectionComponent implements OnInit, OnDestroy {
   @Output() providerSelected = new EventEmitter<{ providerId: string, profile: Profile }>();
   @Input() autoSelectProfileId?: string;
-  @Output() profileContextUpdated = new EventEmitter<Profile | null>(); // Added
+  @Output() profileContextUpdated = new EventEmitter<Profile | null>();
+  @Output() titleChanged = new EventEmitter<string>(); // Added
   profiles: Profile[] = [];
   selectedProfile?: Profile;
   servicesForSelectedProfile: Provider[] = [];
@@ -26,11 +27,14 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
     this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
       if (data.profiles) {
         this.profiles = data.profiles;
-        if (this.autoSelectProfileId && !this.selectedProfile) { // Check !this.selectedProfile to avoid re-selecting if already in service view
+        if (this.autoSelectProfileId && !this.selectedProfile) {
           const profileToSelect = this.profiles.find(p => p.idProfile === this.autoSelectProfileId);
           if (profileToSelect) {
-            this.selectProfile(profileToSelect);
+            this.selectProfile(profileToSelect); // This will emit "Services for..." title
           }
+        } else if (!this.selectedProfile) {
+          // If not auto-selecting and no profile is yet selected, emit default title
+          this.titleChanged.emit('Select a Profile');
         }
       }
     });
@@ -56,7 +60,8 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   selectProfile(profile: Profile): void {
     this.selectedProfile = profile;
     this.servicesForSelectedProfile = profile.providers || [];
-    this.profileContextUpdated.emit(this.selectedProfile); // Added
+    this.profileContextUpdated.emit(this.selectedProfile);
+    this.titleChanged.emit(`Services for ${profile.name || 'Profile'}`); // Added
     // this.autoSelectProfileId = undefined; // Let parent control this input
   }
 
@@ -70,7 +75,8 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   }
 
   showProfiles(): void {
-    this.profileContextUpdated.emit(null); // Added
+    this.titleChanged.emit('Select a Profile'); // Added
+    this.profileContextUpdated.emit(null);
     this.selectedProfile = undefined;
     this.servicesForSelectedProfile = [];
     // this.autoSelectProfileId = undefined; // Let parent control this input

@@ -8,28 +8,9 @@
   /* background-color: lightgreen !important; /* Removed temporary debugging */
 }
 
-/* Styles for the main title of the category navigation section (h2) */
-.category-navigation-container h2 {
-  color: var(--on-background-text-color);
-  margin-top: 0;
-  margin-bottom: 15px;
-  text-align: center;
-  font-size: 1.5em;
-}
-
-.category-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  flex-shrink: 0; /* Ensure header doesn't shrink */
-}
-
-.category-header .category-title-in-header {
-  margin: 0;
-  color: var(--on-background-text-color);
-  font-size: 1.2em;
-}
+/* Removed .category-navigation-container h2 rule */
+/* Removed .category-header rule */
+/* Removed .category-header .category-title-in-header rule */
 
 .back-button-catnav {
   padding: var(--button-padding);

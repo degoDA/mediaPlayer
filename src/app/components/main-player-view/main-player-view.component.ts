@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule, Location } from '@angular/common'; // Added Location
+import { CommonModule } from '@angular/common'; // Location import removed
 import { environment } from '../../../environments/environment';
 
 // Assuming environment.ts exists and has these properties.
@@ -41,18 +41,20 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
   currentView: 'profiles' | 'categories' | 'player' = 'profiles';
   selectedProviderId?: string;
   activeProfileIdForServiceView?: string;
-  activeProfileForSearchContext?: Profile | null; // Added property
+  activeProfileForSearchContext?: Profile | null;
   selectedPlayableItem?: MediaItem | CategoryItem;
 
   showFullScreenSearch: boolean = false;
   currentNotification: string | null = null;
+  currentHeaderTitle: string = 'Select a Profile'; // Changed initial title
+  private currentServiceName?: string;
   private notificationTimeout: any = null;
   private uiSubscription: any; // To hold the subscription
 
   constructor(
     public websocketService: WebsocketService,
-    private cdr: ChangeDetectorRef,
-    private location: Location // Added location
+    private cdr: ChangeDetectorRef
+    // private location: Location // Removed location
   ) {}
 
   ngOnInit(): void {
@@ -97,20 +99,36 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
   onProviderSelected(data: { providerId: string, profile: Profile }): void { // Signature updated
     this.selectedProviderId = data.providerId;
     if (data.profile && data.profile.idProfile) {
-      this.activeProfileIdForServiceView = data.profile.idProfile; // Used by CategoryNavigation
-      this.activeProfileForSearchContext = data.profile; // Set this for the new search input
+      this.activeProfileIdForServiceView = data.profile.idProfile;
+      this.activeProfileForSearchContext = data.profile;
+
+      const selectedProvider = data.profile.providers?.find(p => p.idService === data.providerId);
+      this.currentServiceName = selectedProvider?.name;
+      this.currentHeaderTitle = this.currentServiceName || 'Categories';
     }
     this.currentView = 'categories';
-    // ProfileSelectionComponent already calls browseProvider
-    console.log('Provider selected in main view:', data.providerId);
+    console.log('Provider selected in main view:', data.providerId, 'Service name:', this.currentServiceName);
   }
 
   onProfileContextUpdated(profile: Profile | null): void {
     this.activeProfileForSearchContext = profile;
-    // If profile becomes null, maybe clear activeProfileIdForServiceView too if search should be disabled.
-    // For now, this just updates the search context.
-    // If going back to profiles list (profile is null), and then user selects a provider,
-    // onProviderSelected will repopulate activeProfileForSearchContext.
+    if (!profile) { // Returned to main profile list
+        this.currentHeaderTitle = 'Music Player'; // Default title
+        this.currentServiceName = undefined;
+        // activeProfileIdForServiceView is already undefined due to goAppBack logic
+    } else {
+        // Viewing services for a specific profile
+        this.currentHeaderTitle = profile.name || 'Services'; // Title is profile name
+        this.currentServiceName = undefined;
+    }
+  }
+
+  onSubViewTitleChanged(title: string): void { // Renamed method
+    // Only update if we are in a view that shows categories, player, or profiles
+    // ProfileSelectionComponent now also emits titles.
+    if (this.currentView === 'categories' || this.currentView === 'player' || this.currentView === 'profiles') {
+      this.currentHeaderTitle = title;
+    }
   }
 
   ngOnDestroy(): void {
@@ -144,6 +162,53 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
   }
 
   goAppBack(): void {
-    this.location.back();
+    console.log('[MainPlayerView] goAppBack called. Current view:', this.currentView, 'Active profile for search/service:', this.activeProfileForSearchContext?.idProfile);
+
+    if (this.showFullScreenSearch) {
+      this.toggleFullScreenSearch(); // Close search overlay first
+      console.log('[MainPlayerView] Closed full-screen search.');
+      return;
+    }
+
+    if (this.currentView === 'categories' || this.currentView === 'player') { // 'player' view often shows categories too
+      if (this.websocketService.selectBackCategory()) {
+        // WebsocketService handled back navigation within categories.
+        // The UI will update via its subscription to newUIMessageData,
+        // which should set this.currentView = 'categories' if still in categories.
+        console.log('[MainPlayerView] Navigated back within categories via WebsocketService.');
+        // Ensure view is set to categories if a category back action was successful
+        // This might be important if currentView was 'player'
+        this.currentView = 'categories';
+        return;
+      } else {
+        // No more category history in WebsocketService.
+        // This means we were at the root of a service's categories.
+        // Goal: Go back to showing the service list for the active profile.
+        console.log('[MainPlayerView] No category history. Returning to profiles view to show services for profile:', this.activeProfileIdForServiceView);
+        // ProfileSelectionComponent will emit "Services for <ProfileName>" via its titleChanged event
+        // when it auto-selects the profile. So, no need to set currentHeaderTitle here directly.
+        // Just ensure currentView is set, and ProfileSelectionComponent handles the rest.
+        this.currentView = 'profiles';
+        // currentServiceName is already undefined or will be set by ProfileSelection if a specific service context is implied.
+        return;
+      }
+    }
+
+    if (this.currentView === 'profiles') {
+      if (this.activeProfileIdForServiceView || this.activeProfileForSearchContext) {
+        console.log('[MainPlayerView] In service list view. Returning to main profile list.');
+        this.activeProfileIdForServiceView = undefined;
+        this.activeProfileForSearchContext = null;
+        // ProfileSelectionComponent's showProfiles() should have emitted 'Select a Profile' title.
+        // So, currentHeaderTitle should be updated via onSubViewTitleChanged.
+        // Explicitly setting here is a fallback or can be primary if preferred.
+        this.currentHeaderTitle = 'Select a Profile';
+        this.currentServiceName = undefined;
+        return;
+      } else {
+        console.log('[MainPlayerView] At root profile list, no further in-app back action defined for now.');
+        // Title should already be 'Select a Profile' if this is the case from initial load or previous back.
+      }
+    }
   }
 }

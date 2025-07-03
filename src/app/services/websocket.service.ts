@@ -321,26 +321,38 @@ export class WebsocketService {
         this.reportUIMessageData({ profiles: this.profiles });
       }
 
-      if (
-        // Response provider categories
-        response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu?.Categories?.Item01?.MenuDataItems
-      ) {
-        this.categories = []; // Initialize to ensure it's empty
-        const menuDataItems = response.Device.MediaNavigation.RegisteredClientMenus[this.rcSessionId].MenuUpdates.ProviderBrowseMenu.Categories.Item01.MenuDataItems;
-        for (const id in menuDataItems) {
-          const item = menuDataItems[id];
-          const category: CategoryItem = { // Explicitly type here
-            idCategorie: id, // Or item.id if available and preferred
-            browseItemName: item.BrowseItemName,
-            signedData: item.SignedData,
-            urlIcon: item.UrlIcon,
-            browseKey: item.BrowseKey,
-            providerKey: item.MediaTypeMetaData?.ProviderKey, // Optional chaining for safety
-            streamingMediaType: item.StreamingMediaType,
-          };
-          this.categories.push(category);
+      const providerBrowseMenuUpdate = response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu;
+
+      if (providerBrowseMenuUpdate) { // Check if ProviderBrowseMenu update exists
+        this.categories = [];
+        const menuDataItems = providerBrowseMenuUpdate.Categories?.Item01?.MenuDataItems;
+
+        if (menuDataItems) {
+            // Iterate menuDataItems (assuming object based on current loop with 'id in menuDataItems')
+            for (const id in menuDataItems) {
+              const itemData = menuDataItems[id];
+              const category: CategoryItem = {
+                idCategorie: id,
+                browseItemName: itemData.BrowseItemName,
+                signedData: itemData.SignedData,
+                urlIcon: itemData.UrlIcon,
+                browseKey: itemData.BrowseKey,
+                providerKey: itemData.MediaTypeMetaData?.ProviderKey,
+                streamingMediaType: itemData.StreamingMediaType,
+                artistName: itemData.MediaTypeMetaData?.ArtistName,
+                albumName: itemData.MediaTypeMetaData?.AlbumName
+              };
+              this.categories.push(category);
+            }
         }
-        this.reportUIMessageData({ categories: this.categories });
+
+        const parentBrowseItemName = providerBrowseMenuUpdate.ParentBrowseKey?.BrowseItemName;
+        console.log('[WebsocketService] Processed ProviderBrowseMenu. Parent:', parentBrowseItemName, 'Categories count:', this.categories.length);
+        this.reportUIMessageData({
+            categories: this.categories,
+            parentCategoryName: parentBrowseItemName,
+            type: 'categories' // Added type
+        });
       }
 
       if (
@@ -481,11 +493,11 @@ export class WebsocketService {
             searchResults.push(resultItem);
         }
         console.log('[WebsocketService] Processed SearchMenu results (from object):', searchResults);
-        this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' });
+        this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' }); // Added type
       } else if (response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu) {
         // Handle case where SearchMenu path exists but MenuDataItems might be missing or not an array/object (e.g. no results)
         console.warn('[WebsocketService] SearchMenu results MenuDataItems not found or not a recognized structure. Response path existed.', response.Device.MediaNavigation.RegisteredClientMenus[this.rcSessionId].MenuUpdates.SearchMenu);
-        this.reportUIMessageData({ searchResults: [], type: 'searchResults' }); // Emit empty results
+        this.reportUIMessageData({ searchResults: [], type: 'searchResults' }); // Emit empty results, added type
       }
     }
   }

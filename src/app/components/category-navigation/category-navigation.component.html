@@ -1,10 +1,7 @@
 <div class="category-navigation-container">
-  <div class="category-header">
-    <h2>{{ currentTitle }}</h2>
-    <!-- Back button removed -->
-  </div>
+  <!-- div.category-header and its h2 title removed -->
 
-  <div class="scrollable-category-list-wrapper"> <!-- NEW WRAPPER -->
+  <div class="scrollable-category-list-wrapper">
     <div class="category-list" *ngIf="categories && categories.length > 0; else noCategoriesOrLoading"> <!-- This div will be the grid/flex container -->
       <!-- Card structure for each category -->
       <div class="card category-card"
