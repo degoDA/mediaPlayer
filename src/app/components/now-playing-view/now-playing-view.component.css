@@ -1,22 +1,19 @@
 :host {
-  display: block;
-  position: fixed; /* Or use the overlay for full screen coverage */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1030; /* Ensure it's above most content, but potentially below modals like search */
+  display: block; /* Keep, ensures the component itself behaves as a block */
+  width: 100%;   /* Allow it to take full width of its container in MainPlayerView */
+  height: 100%;  /* Allow it to take full height of its container in MainPlayerView */
+  /* Removed position:fixed, top, left, z-index */
 }
 
-/* Was .now-playing-view-overlay, acts as the root container for this component's view */
+/* This class is on the root div inside the component's template. */
+/* Its styles should make it fill the :host area. */
 .now-playing-view-overlay {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%; /* Will fill the .content-area of MainPlayerViewComponent */
+  height: 100%;
   box-sizing: border-box;
-  /* background-color: var(--background-color); /* Optional: if different from content-area's inherited bg */
-  /* overflow: hidden; /* Panel inside will scroll if needed */
+  /* background-color: var(--background-color); /* This will be inherited from .content-area or body */
 }
 
 .now-playing-panel {
