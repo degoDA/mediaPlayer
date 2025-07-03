@@ -14,37 +14,12 @@
 
 .now-playing-info-flex-container {
   display: flex;
-  align-items: center; /* Vertically center art, details, controls */
-  gap: 15px;
-  margin-bottom: 15px;
-  /* padding: 10px; /* Optional if not already on .player-component */
-  /* background-color: var(--surface-color); /* Already on .player-component */
-  /* border-radius: 5px; /* Already on .player-component */
-}
-
-.album-art-wrapper {
-  flex-shrink: 0;
-}
-
-.album-art-img {
-  width: 80px; /* Slightly smaller for typical player */
-  height: 80px;
-  object-fit: cover;
-  border-radius: 4px;
-  display: block;
-}
-
-.album-art-placeholder-text {
-  width: 80px;
-  height: 80px;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  background-color: var(--background-color); /* Darker placeholder bg */
-  color: var(--secondary-text-color);
-  border-radius: 4px;
-  font-size: 0.8em;
+  gap: 10px; /* Adjust gap for items in this row */
+  margin-bottom: 15px;
 }
+
+/* Removed .album-art-wrapper, .album-art-img, .album-art-placeholder-text rules */
 
 .track-details-text-wrapper {
   flex-grow: 1;
@@ -137,29 +112,41 @@
   flex-direction: column; /* To stack main and secondary controls */
   align-items: center; /* Center them horizontally */
   gap: 10px; /* Space between main and secondary controls */
+  /* This first .controls-section rule is older and less specific.
+     The one below (around original line 170) is more current for the row layout.
+     We will ensure the correct one is preserved and this one is removed or merged.
+     Assuming the one with flex-shrink: 0 is the one to keep and adapt.
+   */
 }
 
-.buttons-container { /* For main Play/Pause, Next, Prev */
+/* .buttons-container and .secondary-buttons-container styles are fine */
+/* Ensure the .controls-section rule that is kept contains flex-shrink: 0 */
+
+.expand-button {
+  background-color: transparent;
+  border: none;
+  color: var(--on-surface-text-color); /* Or primary-color for more pop */
+  padding: 5px;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 50%; /* Make it circular like other icon buttons */
+  width: 36px; /* Adjust size */
+  height: 36px; /* Adjust size */
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 15px; /* Increased gap for main controls */
-}
-
-.secondary-buttons-container { /* For Shuffle, Repeat */
-  display: flex;
   justify-content: center;
-  gap: 10px;
+  margin-left: auto; /* THIS WILL PUSH IT TO THE FAR RIGHT */
 }
 
-.controls-section { /* Now a flex item in the row */
-  display: flex;
-  /* flex-direction: row; /* If main and secondary buttons are side-by-side */
-  /* OR */
-  flex-direction: column; /* If main buttons are above secondary, as current HTML implies */
-  align-items: center; /* Center button groups if column */
-  gap: 5px; /* Between main buttons container and secondary buttons container */
-  flex-shrink: 0; /* Prevent controls from being squished */
+.expand-button:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1); /* Subtle hover */
+}
+
+.expand-svg-icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  display: block;
 }
 
 /* Base style for all icon control buttons */

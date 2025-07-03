@@ -170,6 +170,28 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
     this.showFullScreenSearch = !this.showFullScreenSearch;
   }
 
+  public switchToFullScreenPlayer(): void {
+    // Check if there's actually something playing before switching
+    if (this.websocketService.mediaPlayerState?.nowPlayingData &&
+        this.websocketService.mediaPlayerState.nowPlayingData.trackTitle &&
+        this.websocketService.mediaPlayerState.nowPlayingData.trackTitle.trim() !== '') {
+
+      console.log('[MainPlayerView] Switching to full screen player. Current view:', this.currentView);
+      this.previousViewBeforeNowPlaying = this.currentView;
+      this.currentView = 'nowPlayingFullScreen';
+
+      // Update header title based on current track, as user is focusing on it
+      // This assumes nowPlayingData is populated when this is called.
+      this.currentHeaderTitle = this.websocketService.mediaPlayerState.nowPlayingData.trackTitle ||
+                                this.websocketService.mediaPlayerState.nowPlayingData.stationName ||
+                                'Now Playing';
+    } else {
+      console.log('[MainPlayerView] Request to switch to full screen player, but no track data available.');
+      // Optionally, briefly show a notification: "Nothing is playing."
+      // For now, do nothing if no track is loaded.
+    }
+  }
+
   goAppBack(): void {
     console.log('[MainPlayerView] goAppBack called. Current view:', this.currentView);
 

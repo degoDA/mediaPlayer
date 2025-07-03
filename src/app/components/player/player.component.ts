@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core'; // Added Output, EventEmitter
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { WebsocketService } from '../../services/websocket.service';
@@ -21,7 +21,9 @@ export class PlayerComponent implements OnInit, OnDestroy {
   private lastElapsedSecTimestamp: number = 0;
   private currentTrackDurationSec: number = 0;
   private isLocallyUpdatingProgress: boolean = false;
-  public currentFormattedElapsedTime: string = '00:00'; // Public for template binding
+  public currentFormattedElapsedTime: string = '00:00';
+
+  @Output() requestFullScreenPlayer = new EventEmitter<void>(); // Added Output
 
   constructor(private websocketService: WebsocketService) {}
 
@@ -201,6 +203,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
       this.playbackProgress = 0;
     }
     // console.log('[PlayerComponent] playbackProgress property updated by calculateProgress to:', this.playbackProgress);
+  }
+
+  public onExpandClicked(): void {
+    console.log('[PlayerComponent] Expand button clicked');
+    this.requestFullScreenPlayer.emit();
   }
 
   sendPlaybackAction(uiAction: string): void {

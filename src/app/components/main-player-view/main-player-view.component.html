@@ -49,7 +49,7 @@
 
   <footer class="player-footer" *ngIf="websocketService.mediaPlayerState?.nowPlayingData && currentView !== 'nowPlayingFullScreen'">
     <!-- Player component is always visible at the bottom once we move past profile selection -->
-    <app-player></app-player>
+    <app-player (requestFullScreenPlayer)="switchToFullScreenPlayer()"></app-player>
   </footer>
 
   <!-- Alternative strategy: Player is part of the main content area when view is 'player' -->
