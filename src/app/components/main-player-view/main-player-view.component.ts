@@ -129,10 +129,10 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  onSubViewTitleChanged(title: string): void { // Renamed method
-    // Only update if we are in a view that shows categories, player, or profiles
-    // ProfileSelectionComponent now also emits titles.
-    if (this.currentView === 'categories' || this.currentView === 'player' || this.currentView === 'profiles') {
+  onSubViewTitleChanged(title: string): void {
+    // Only update if we are in a view that shows categories or profiles
+    // (or player if it's showing category context, but nowPlayingFullScreen is separate)
+    if (this.currentView === 'categories' || this.currentView === 'profiles') {
       this.currentHeaderTitle = title;
     }
   }
@@ -155,18 +155,7 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
     console.log('[MainPlayerView] Switched to nowPlayingFullScreen. Previous view was:', this.previousViewBeforeNowPlaying);
   }
 
-  closeNowPlayingView(): void {
-    this.currentView = this.previousViewBeforeNowPlaying || 'categories'; // Fallback
-    console.log('[MainPlayerView] Exited nowPlayingFullScreen via component event. Returning to:', this.currentView);
-    // Similar title logic as in goAppBack for this case
-      if (this.currentView === 'profiles') {
-          this.currentHeaderTitle = this.activeProfileForSearchContext
-              ? `Services for ${this.activeProfileForSearchContext.name || 'Profile'}`
-              : 'Select a Profile';
-      } else if (this.currentView === 'categories') {
-          this.currentHeaderTitle = this.currentServiceName || 'Categories';
-      }
-  }
+  // closeNowPlayingView(): void method removed
 
   onCategoryNavigation(category: CategoryItem): void {
     // This event signifies that navigation is happening within CategoryNavigationComponent.
@@ -203,7 +192,7 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.currentView === 'categories' || this.currentView === 'player') {
+    if (this.currentView === 'categories') { // Changed from 'categories' || 'player'
       if (this.websocketService.selectBackCategory()) {
         console.log('[MainPlayerView] Navigated back within categories via WebsocketService.');
         this.currentView = 'categories';

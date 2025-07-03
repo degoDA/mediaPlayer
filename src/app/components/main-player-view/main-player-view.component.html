@@ -37,8 +37,8 @@
       <!-- Redundant *ngSwitchCase="'player'" block removed -->
 
       <app-now-playing-view
-        *ngSwitchCase="'nowPlayingFullScreen'"
-        (closeView)="closeNowPlayingView()">
+        *ngSwitchCase="'nowPlayingFullScreen'">
+        <!-- (closeView) binding removed -->
       </app-now-playing-view>
 
       <div *ngSwitchDefault>

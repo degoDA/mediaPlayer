@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core'; // Output, EventEmitter removed
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { WebsocketService } from '../../services/websocket.service';
@@ -13,7 +13,7 @@ import { MediaPlayerState, NowPlayingData } from '../../interfaces/player.interf
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NowPlayingViewComponent implements OnInit, OnDestroy {
-  @Output() closeView = new EventEmitter<void>();
+  // @Output() closeView = new EventEmitter<void>(); // Removed
 
   mediaPlayerState?: MediaPlayerState;
   playbackProgress: number = 0;
@@ -237,9 +237,7 @@ export class NowPlayingViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  onCloseView(): void {
-    this.closeView.emit();
-  }
+  // onCloseView(): void method removed
 
   ngOnDestroy(): void {
     this.stopLocalProgressTimer();
