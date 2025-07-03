@@ -22,7 +22,9 @@ import { CategoryItem } from '../../interfaces/category.interface';
 import { Profile } from '../../interfaces/profile.interface';
 import { NotificationComponent } from '../notification/notification.component';
 import { FullScreenSearchComponent } from '../full-screen-search/full-screen-search.component';
-import { NowPlayingViewComponent } from '../now-playing-view/now-playing-view.component'; // Added import
+import { NowPlayingViewComponent } from '../now-playing-view/now-playing-view.component';
+
+export type PlayerViewStates = 'profiles' | 'categories' | 'nowPlayingFullScreen'; // 'player' removed
 
 @Component({
   selector: 'app-main-player-view',
@@ -40,17 +42,17 @@ import { NowPlayingViewComponent } from '../now-playing-view/now-playing-view.co
   styleUrls: ['./main-player-view.component.css']
 })
 export class MainPlayerViewComponent implements OnInit, OnDestroy {
-  currentView: 'profiles' | 'categories' | 'player' | 'nowPlayingFullScreen' = 'profiles'; // Added new view state
+  currentView: PlayerViewStates = 'profiles'; // Using PlayerViewStates
   selectedProviderId?: string;
   activeProfileIdForServiceView?: string;
   activeProfileForSearchContext?: Profile | null;
-  selectedPlayableItem?: MediaItem | CategoryItem; // This might not be needed if NowPlayingView subscribes directly
+  selectedPlayableItem?: MediaItem | CategoryItem;
 
   showFullScreenSearch: boolean = false;
   currentNotification: string | null = null;
   currentHeaderTitle: string = 'Select a Profile';
   private currentServiceName?: string;
-  previousViewBeforeNowPlaying: string = 'profiles'; // Added property
+  previousViewBeforeNowPlaying: PlayerViewStates = 'profiles'; // Using PlayerViewStates
 
   private notificationTimeout: any = null;
   private uiSubscription: any;

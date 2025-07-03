@@ -34,23 +34,7 @@
         <!-- (returnToServiceSelection) binding removed -->
       </app-category-navigation>
 
-      <!--
-        If currentView is 'player', it means a track was selected.
-        Category navigation might be hidden or shown alongside.
-        For this setup, if a track is selected (view becomes 'player'),
-        we might want to keep showing categories for further navigation,
-        or have a dedicated "now playing" view.
-        Let's assume for now that when currentView is 'player',
-        we might still want to see categories.
-      -->
-      <app-category-navigation
-        *ngSwitchCase="'player'"
-        [currentProviderId]="selectedProviderId"
-        (itemSelected)="onPlayableItemSelected($event)"
-        (categorySelected)="onCategoryNavigation($event)"
-        (titleChanged)="onSubViewTitleChanged($event)">
-        <!-- (returnToServiceSelection) binding removed -->
-      </app-category-navigation>
+      <!-- Redundant *ngSwitchCase="'player'" block removed -->
 
       <app-now-playing-view
         *ngSwitchCase="'nowPlayingFullScreen'"
@@ -58,7 +42,7 @@
       </app-now-playing-view>
 
       <div *ngSwitchDefault>
-        <p>Loading or unknown view...</p> <!-- Default case -->
+        <p>Loading or unknown view...</p>
       </div>
     </div>
   </main>

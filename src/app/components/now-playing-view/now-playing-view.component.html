@@ -1,5 +1,5 @@
-<div class="now-playing-view-overlay" (click)="onCloseView()"> <!-- Click backdrop to close -->
-  <div class="now-playing-panel" (click)="$event.stopPropagation()">
+<div class="now-playing-view-overlay"> <!-- (click)="onCloseView()" Removed from here -->
+  <div class="now-playing-panel" (click)="$event.stopPropagation()"> <!-- StopPropagation might be less relevant if overlay doesn't close on click -->
     <button class="panel-close-button" (click)="onCloseView()" aria-label="Close Now Playing view">&times;</button>
 
     <div class="now-playing-content-grid" *ngIf="mediaPlayerState?.nowPlayingData && mediaPlayerState?.nowPlayingData?.trackTitle; else noTrackPlaying">
