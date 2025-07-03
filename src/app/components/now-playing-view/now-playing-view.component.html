@@ -1,0 +1,51 @@
+<div class="now-playing-view-overlay" (click)="onCloseView()"> <!-- Click backdrop to close -->
+  <div class="now-playing-panel" (click)="$event.stopPropagation()">
+    <button class="panel-close-button" (click)="onCloseView()" aria-label="Close Now Playing view">&times;</button>
+
+    <div class="now-playing-content-grid" *ngIf="mediaPlayerState?.nowPlayingData && mediaPlayerState?.nowPlayingData?.trackTitle; else noTrackPlaying">
+      <div class="album-art-column-np">
+        <img [src]="albumArtUrl" alt="Album art for {{ trackTitle }}" class="album-art-large" *ngIf="albumArtUrl">
+        <div class="album-art-placeholder-large" *ngIf="!albumArtUrl">No Art</div>
+      </div>
+
+      <div class="info-controls-column-np">
+        <div class="track-info-np">
+          <h2 class="track-title-np" title="{{ trackTitle }}">{{ trackTitle || 'Unknown Title' }}</h2>
+          <p class="artist-name-np" title="{{ artistName }}">{{ artistName || 'Unknown Artist' }}</p>
+          <p class="album-name-np" title="{{ albumName }}">{{ albumName || 'Unknown Album' }}</p>
+          <p class="station-name-np" *ngIf="stationName">{{ stationName }}</p>
+        </div>
+
+        <div class="progress-section-np">
+          <div class="time-display-np">
+            <span>{{ currentFormattedElapsedTime }}</span>
+            <span>{{ totalDurationFormatted }}</span>
+          </div>
+          <div class="progress-bar-container-np">
+            <progress class="playback-progress-np" [value]="playbackProgress" max="100"></progress>
+          </div>
+        </div>
+
+        <div class="controls-section-np">
+          <div class="main-buttons-np">
+            <button class="control-button-np" (click)="sendPlaybackAction('Previous')" [disabled]="!isActionAvailable('Previous')" aria-label="Previous Track">&#x23EE;</button>
+            <button class="control-button-np play-pause-np" (click)="sendPlaybackAction('PlayPause')" [disabled]="!isActionAvailable('PlayPause')" aria-label="Play or Pause">
+              <span *ngIf="isCurrentlyPausable">&#x23F8;</span><span *ngIf="!isCurrentlyPausable">&#x25B6;</span>
+            </button>
+            <button class="control-button-np" (click)="sendPlaybackAction('Next')" [disabled]="!isActionAvailable('Next')" aria-label="Next Track">&#x23ED;</button>
+          </div>
+          <div class="secondary-buttons-np" *ngIf="mediaPlayerState?.availableActions?.length">
+            <button *ngIf="isActionAvailable('Shuffle')" class="control-button-np secondary-np" (click)="sendPlaybackAction('Shuffle')" [class.active]="mediaPlayerState?.availableActions?.includes('Shuffle')" aria-label="Shuffle">&#x1F500;</button>
+            <button *ngIf="isActionAvailable('Repeat')" class="control-button-np secondary-np" (click)="sendPlaybackAction('Repeat')" [class.active]="mediaPlayerState?.availableActions?.includes('Repeat')" aria-label="Repeat">&#x1F501;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ng-template #noTrackPlaying>
+      <div class="no-track-message-np">
+        <p>Nothing is currently playing.</p>
+        <button class="close-view-button" (click)="onCloseView()">Close</button> <!-- Added themed button -->
+      </div>
+    </ng-template>
+  </div>
+</div>

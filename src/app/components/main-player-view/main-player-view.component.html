@@ -52,10 +52,18 @@
         <!-- (returnToServiceSelection) binding removed -->
       </app-category-navigation>
 
+      <app-now-playing-view
+        *ngSwitchCase="'nowPlayingFullScreen'"
+        (closeView)="closeNowPlayingView()">
+      </app-now-playing-view>
+
+      <div *ngSwitchDefault>
+        <p>Loading or unknown view...</p> <!-- Default case -->
+      </div>
     </div>
   </main>
 
-  <footer class="player-footer" *ngIf="websocketService.mediaPlayerState && websocketService.mediaPlayerState.nowPlayingData">
+  <footer class="player-footer" *ngIf="websocketService.mediaPlayerState?.nowPlayingData && currentView !== 'nowPlayingFullScreen'">
     <!-- Player component is always visible at the bottom once we move past profile selection -->
     <app-player></app-player>
   </footer>

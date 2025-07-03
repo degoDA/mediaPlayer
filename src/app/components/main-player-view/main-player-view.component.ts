@@ -21,7 +21,8 @@ import { MediaItem } from '../../interfaces/media.interface';
 import { CategoryItem } from '../../interfaces/category.interface';
 import { Profile } from '../../interfaces/profile.interface';
 import { NotificationComponent } from '../notification/notification.component';
-import { FullScreenSearchComponent } from '../full-screen-search/full-screen-search.component'; // Added import
+import { FullScreenSearchComponent } from '../full-screen-search/full-screen-search.component';
+import { NowPlayingViewComponent } from '../now-playing-view/now-playing-view.component'; // Added import
 
 @Component({
   selector: 'app-main-player-view',
@@ -30,26 +31,29 @@ import { FullScreenSearchComponent } from '../full-screen-search/full-screen-sea
     CommonModule,
     ProfileSelectionComponent,
     CategoryNavigationComponent,
-    PlayerComponent,
+    PlayerComponent, // Footer player
     NotificationComponent,
-    FullScreenSearchComponent // Added FullScreenSearchComponent
+    FullScreenSearchComponent,
+    NowPlayingViewComponent // Added
   ],
   templateUrl: './main-player-view.component.html',
   styleUrls: ['./main-player-view.component.css']
 })
-export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implemented OnDestroy
-  currentView: 'profiles' | 'categories' | 'player' = 'profiles';
+export class MainPlayerViewComponent implements OnInit, OnDestroy {
+  currentView: 'profiles' | 'categories' | 'player' | 'nowPlayingFullScreen' = 'profiles'; // Added new view state
   selectedProviderId?: string;
   activeProfileIdForServiceView?: string;
   activeProfileForSearchContext?: Profile | null;
-  selectedPlayableItem?: MediaItem | CategoryItem;
+  selectedPlayableItem?: MediaItem | CategoryItem; // This might not be needed if NowPlayingView subscribes directly
 
   showFullScreenSearch: boolean = false;
   currentNotification: string | null = null;
-  currentHeaderTitle: string = 'Select a Profile'; // Changed initial title
+  currentHeaderTitle: string = 'Select a Profile';
   private currentServiceName?: string;
+  previousViewBeforeNowPlaying: string = 'profiles'; // Added property
+
   private notificationTimeout: any = null;
-  private uiSubscription: any; // To hold the subscription
+  private uiSubscription: any;
 
   constructor(
     public websocketService: WebsocketService,
@@ -141,11 +145,25 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
   }
 
   onPlayableItemSelected(item: MediaItem | CategoryItem): void {
-    this.selectedPlayableItem = item;
-    // CategoryNavigationComponent already calls playback
-    this.currentView = 'player'; // Or keep it 'categories' and player is just active
-    console.log('Playable item selected in main view:', item);
-    // Depending on layout, player might always be visible, or become prominent here.
+    // The playback command is already issued by CategoryNavigationComponent or FullScreenSearchComponent's onItemSelected
+    // this.selectedPlayableItem = item; // This property might not be needed if NowPlayingViewComponent subscribes directly
+
+    this.previousViewBeforeNowPlaying = this.currentView; // Store current view (e.g., 'categories', 'profiles' if search was done from there)
+    this.currentView = 'nowPlayingFullScreen';
+    console.log('[MainPlayerView] Switched to nowPlayingFullScreen. Previous view was:', this.previousViewBeforeNowPlaying);
+  }
+
+  closeNowPlayingView(): void {
+    this.currentView = this.previousViewBeforeNowPlaying || 'categories'; // Fallback
+    console.log('[MainPlayerView] Exited nowPlayingFullScreen via component event. Returning to:', this.currentView);
+    // Similar title logic as in goAppBack for this case
+      if (this.currentView === 'profiles') {
+          this.currentHeaderTitle = this.activeProfileForSearchContext
+              ? `Services for ${this.activeProfileForSearchContext.name || 'Profile'}`
+              : 'Select a Profile';
+      } else if (this.currentView === 'categories') {
+          this.currentHeaderTitle = this.currentServiceName || 'Categories';
+      }
   }
 
   onCategoryNavigation(category: CategoryItem): void {
@@ -162,34 +180,37 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
   }
 
   goAppBack(): void {
-    console.log('[MainPlayerView] goAppBack called. Current view:', this.currentView, 'Active profile for search/service:', this.activeProfileForSearchContext?.idProfile);
+    console.log('[MainPlayerView] goAppBack called. Current view:', this.currentView);
 
     if (this.showFullScreenSearch) {
-      this.toggleFullScreenSearch(); // Close search overlay first
+      this.toggleFullScreenSearch();
       console.log('[MainPlayerView] Closed full-screen search.');
       return;
     }
 
-    if (this.currentView === 'categories' || this.currentView === 'player') { // 'player' view often shows categories too
+    if (this.currentView === 'nowPlayingFullScreen') {
+      this.currentView = this.previousViewBeforeNowPlaying || 'categories'; // Fallback to 'categories' or 'profiles'
+      console.log('[MainPlayerView] Exited nowPlayingFullScreen. Returning to:', this.currentView);
+      if (this.currentView === 'profiles') {
+          this.currentHeaderTitle = this.activeProfileForSearchContext
+              ? `Services for ${this.activeProfileForSearchContext.name || 'Profile'}`
+              : 'Select a Profile';
+      } else if (this.currentView === 'categories') {
+          this.currentHeaderTitle = this.currentServiceName || 'Categories'; // A sensible default
+      }
+      return;
+    }
+
+    if (this.currentView === 'categories' || this.currentView === 'player') {
       if (this.websocketService.selectBackCategory()) {
-        // WebsocketService handled back navigation within categories.
-        // The UI will update via its subscription to newUIMessageData,
-        // which should set this.currentView = 'categories' if still in categories.
         console.log('[MainPlayerView] Navigated back within categories via WebsocketService.');
-        // Ensure view is set to categories if a category back action was successful
-        // This might be important if currentView was 'player'
         this.currentView = 'categories';
+        // Title will be updated by CategoryNavigationComponent via (titleChanged) if parentCategoryName is available
         return;
       } else {
-        // No more category history in WebsocketService.
-        // This means we were at the root of a service's categories.
-        // Goal: Go back to showing the service list for the active profile.
         console.log('[MainPlayerView] No category history. Returning to profiles view to show services for profile:', this.activeProfileIdForServiceView);
-        // ProfileSelectionComponent will emit "Services for <ProfileName>" via its titleChanged event
-        // when it auto-selects the profile. So, no need to set currentHeaderTitle here directly.
-        // Just ensure currentView is set, and ProfileSelectionComponent handles the rest.
         this.currentView = 'profiles';
-        // currentServiceName is already undefined or will be set by ProfileSelection if a specific service context is implied.
+        // Title will be set by ProfileSelectionComponent via (titleChanged) when it auto-selects
         return;
       }
     }
@@ -199,15 +220,12 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy { // Implement
         console.log('[MainPlayerView] In service list view. Returning to main profile list.');
         this.activeProfileIdForServiceView = undefined;
         this.activeProfileForSearchContext = null;
-        // ProfileSelectionComponent's showProfiles() should have emitted 'Select a Profile' title.
-        // So, currentHeaderTitle should be updated via onSubViewTitleChanged.
-        // Explicitly setting here is a fallback or can be primary if preferred.
         this.currentHeaderTitle = 'Select a Profile';
         this.currentServiceName = undefined;
+        // ProfileSelectionComponent's showProfiles() will emit the 'Select a Profile' title.
         return;
       } else {
         console.log('[MainPlayerView] At root profile list, no further in-app back action defined for now.');
-        // Title should already be 'Select a Profile' if this is the case from initial load or previous back.
       }
     }
   }
