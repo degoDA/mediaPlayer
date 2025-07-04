@@ -8,11 +8,10 @@
     <div class="track-details-text-wrapper">
       <h3 class="track-title-text" title="{{ trackTitle }}">{{ trackTitle || 'Unknown Title' }}</h3>
       <p class="artist-name-text" title="{{ artistName }}">By: {{ artistName || 'Unknown Artist' }}</p>
-      <p class="album-name-text" title="{{ albumName }}">Album: {{ albumName || 'Unknown Album' }}</p>
-      <p class="station-name-text" *ngIf="mediaPlayerState?.nowPlayingData?.stationName">
-        Station: {{ mediaPlayerState?.nowPlayingData?.stationName }}
-      </p>
-      <!-- Extra </p> was here and is now removed -->
+      <!-- <p class="album-name-text" title="{{ albumName }}">Album: {{ albumName || 'Unknown Album' }}</p> Removed -->
+      <!-- <p class="station-name-text" *ngIf="mediaPlayerState?.nowPlayingData?.stationName"> -->
+        <!-- Station: {{ mediaPlayerState?.nowPlayingData?.stationName }} -->
+      <!-- </p> Removed -->
     </div>
 
     <div class="controls-section"> <!-- MOVED INSIDE -->
@@ -56,14 +55,7 @@
     </button>
   </div>
 
-  <!-- Progress Bar Section remains below the info/controls flex container -->
-  <div class="progress-section playback-controls"> <!-- Assuming playback-controls is the class for this section -->
-    <div class="progress-bar-container">
-      <span class="time-elapsed">{{ currentFormattedElapsedTime }}</span>
-      <progress class="playback-progress" [value]="playbackProgress" max="100"></progress>
-      <span class="time-total">{{ totalDurationFormatted }}</span>
-    </div>
-  </div>
+  <!-- Progress Bar Section REMOVED -->
 </div>
 
 <!-- Fallback content when no track is playing -->

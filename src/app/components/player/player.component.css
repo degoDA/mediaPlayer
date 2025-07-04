@@ -16,11 +16,11 @@
   display: flex;
   align-items: center;
   gap: 10px; /* Adjust gap for items in this row */
-  margin-bottom: 15px;
+  margin-bottom: 15px; /* This might be removed if progress bar is gone and no margin needed */
 }
 
 /* Removed .album-art-wrapper, .album-art-img, .album-art-placeholder-text rules */
-
+/* Styles for .track-details-text-wrapper and its children (title, artist) remain */
 .track-details-text-wrapper {
   flex-grow: 1;
   min-width: 0;
@@ -49,78 +49,36 @@
   color: var(--secondary-text-color); /* Muted for details */
 }
 
-.progress-section { /* This class wraps progress-bar-container and time-display */
-  margin-bottom: 10px;
-}
+/* Removed .progress-section and its child styles: */
+/* .progress-bar-container, .playback-progress, .time-elapsed, .time-total, .time-display */
 
-.progress-bar-container { /* This specifically is for the progress element itself if it's a direct wrapper */
-  width: 100%;
-  /* background-color: var(--background-color); /* Track for progress - moved to progress element for better control */
-  /* border-radius: 4px; */
-  /* padding: 2px; */
-  height: 10px; /* Explicit height for the area containing progress */
-  display: flex; /* If time-elapsed/total are outside the progress element but inside this */
-  align-items: center;
-}
-
-/* Styling the actual progress element */
-.playback-progress { /* Assuming this class is on the <progress> element */
-  width: 100%;
-  height: 8px; /* Height of actual progress fill */
-  appearance: none; /* Essential for custom styling */
-  -webkit-appearance: none; /* For Safari/Chrome */
-  border: none; /* Remove default border */
-  border-radius: 4px;
-  background-color: var(--background-color); /* Track color */
-}
-
-/* Webkit browsers */
-.playback-progress::-webkit-progress-bar {
-  background-color: var(--background-color); /* Track color */
-  border-radius: 4px;
-}
-.playback-progress::-webkit-progress-value {
-  background-color: var(--primary-color); /* Fill color */
-  border-radius: 4px;
-  transition: width 0.1s linear;
-}
-
-/* Firefox */
-.playback-progress::-moz-progress-bar { /* Just the fill part for FF */
-  background-color: var(--primary-color); /* Fill color */
-  border-radius: 4px;
-  transition: width 0.1s linear;
-}
-
-.time-elapsed, .time-total { /* These were siblings of progress bar in HTML */
-    font-size: 0.8em;
-    color: var(--secondary-text-color);
-    margin: 0 5px; /* Add some margin if they are direct children of progress-bar-container */
-}
-/* If .time-display is a wrapper for these, style .time-display instead */
-.time-display {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8em;
-  color: var(--secondary-text-color);
-  margin-top: 3px; /* Space above time if it's below progress bar */
-}
-
-
-.controls-section { /* This class wraps buttons-container and secondary-buttons-container */
+.controls-section {
   display: flex;
   flex-direction: column; /* To stack main and secondary controls */
   align-items: center; /* Center them horizontally */
-  gap: 10px; /* Space between main and secondary controls */
-  /* This first .controls-section rule is older and less specific.
-     The one below (around original line 170) is more current for the row layout.
-     We will ensure the correct one is preserved and this one is removed or merged.
-     Assuming the one with flex-shrink: 0 is the one to keep and adapt.
-   */
+  /* The first .controls-section rule block will be removed by this diff. */
 }
 
-/* .buttons-container and .secondary-buttons-container styles are fine */
-/* Ensure the .controls-section rule that is kept contains flex-shrink: 0 */
+.buttons-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.secondary-buttons-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* This is the .controls-section rule that will be updated */
+.controls-section {
+  display: flex;
+  flex-direction: row; /* CHANGED to row */
+  align-items: center; /* Align button groups in the row */
+  gap: 8px; /* Adjusted gap for items in a row (e.g. between main and secondary groups) */
+  flex-shrink: 0; /* Prevent controls from being squished */
+}
 
 .expand-button {
   background-color: transparent;

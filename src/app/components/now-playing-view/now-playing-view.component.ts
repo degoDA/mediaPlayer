@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core'; // Output, EventEmitter removed
+import { Component, OnInit, OnDestroy, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core'; // Add ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { WebsocketService } from '../../services/websocket.service';
@@ -27,7 +27,10 @@ export class NowPlayingViewComponent implements OnInit, OnDestroy {
   private currentTrackDurationSec: number = 0;
   private isLocallyUpdatingProgress: boolean = false;
 
-  constructor(public websocketService: WebsocketService) {} // Made public for template access to service.mediaPlayerState
+  constructor(
+    public websocketService: WebsocketService,
+    private cdr: ChangeDetectorRef // Added cdr
+  ) {}
 
   ngOnInit(): void {
     this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
@@ -57,6 +60,7 @@ export class NowPlayingViewComponent implements OnInit, OnDestroy {
     this.currentFormattedElapsedTime = this.formatTimeDisplay(newElapsedSec);
     this.totalDurationFormattedCache = this.formatTimeDisplay(newDurationSec);
     this.calculateProgress(); // Sets this.playbackProgress
+    this.cdr.detectChanges(); // Ensure this is called after all direct state updates from WS
 
     if (!this.mediaPlayerState.nowPlayingData || !this.mediaPlayerState.nowPlayingData.trackTitle) { // More robust check
       // console.log('[NowPlayingViewComponent] Playback stopped or no track data.');
@@ -119,6 +123,7 @@ export class NowPlayingViewComponent implements OnInit, OnDestroy {
         this.playbackProgress = this.currentTrackDurationSec > 0 ? (currentEstimatedElapsed / this.currentTrackDurationSec) * 100 : 0;
       }
       this.currentFormattedElapsedTime = this.formatTimeDisplay(currentEstimatedElapsed);
+      this.cdr.detectChanges(); // Ensure view updates with timer values
       // console.log('[NowPlayingViewComponent] Timer Tick - Estimated Elapsed:', currentEstimatedElapsed, 'Progress:', this.playbackProgress); // Verbose
     }, 1000);
   }
