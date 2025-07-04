@@ -23,6 +23,9 @@ export class WebsocketService {
   private categoryHistoryStack: any[] = [];
   private currentCategoryRequestMessage: any = null;
 
+  public lastProcessedCategories: CategoryItem[] = []; // Added
+  public lastProcessedParentCategoryName?: string; // Added
+
   connect(url: string, protocol: string): void {
     this.socket = new WebSocket(url, protocol);
 
@@ -347,11 +350,15 @@ export class WebsocketService {
         }
 
         const parentBrowseItemName = providerBrowseMenuUpdate.ParentBrowseKey?.BrowseItemName;
-        console.log('[WebsocketService] Processed ProviderBrowseMenu. Parent:', parentBrowseItemName, 'Categories count:', this.categories.length);
+
+        this.lastProcessedCategories = [...this.categories]; // Store a copy
+        this.lastProcessedParentCategoryName = parentBrowseItemName; // Store parent name
+        // console.log('[WebsocketService] Caching last processed categories. Count:', this.lastProcessedCategories.length, 'Parent:', this.lastProcessedParentCategoryName); // Removed
+
         this.reportUIMessageData({
             categories: this.categories,
             parentCategoryName: parentBrowseItemName,
-            type: 'categories' // Added type
+            type: 'categories'
         });
       }
 

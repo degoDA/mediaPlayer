@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { WebsocketService } from '../../services/websocket.service';
 import { CategoryItem } from '../../interfaces/category.interface';
-import { MediaItem } from '../../interfaces/media.interface'; // Assuming MediaItem might be emitted
+import { MediaItem } from '../../interfaces/media.interface';
 
 @Component({
   selector: 'app-category-navigation',
@@ -16,24 +16,52 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
   @Input() currentProviderId?: string;
   @Output() itemSelected = new EventEmitter<CategoryItem | MediaItem>();
   @Output() categorySelected = new EventEmitter<CategoryItem>();
-  @Output() titleChanged = new EventEmitter<string>(); // Added
-  // @Output() returnToServiceSelection = new EventEmitter<void>(); // Removed
+  @Output() titleChanged = new EventEmitter<string>();
 
   categories: CategoryItem[] = [];
   private uiSubscription!: Subscription;
-  currentTitle: string = 'Categories'; // Default title
+  currentTitle: string = 'Categories';
 
-  // Basic check for "playable" types. This might need refinement.
   public playableMediaTypes: string[] = ['Track', 'Song', 'Station', 'PodcastEpisode', 'AudioBookChapter'];
-  // Basic check for "browsable" container types. This might need refinement.
   public browsableContainerTypes: string[] = ['Folder', 'Artist', 'Album', 'Playlist', 'Podcast', 'AudioBook', 'StationList'];
 
-
-  constructor(private websocketService: WebsocketService) {}
+  constructor(
+    private websocketService: WebsocketService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
+    const cachedCategories = this.websocketService.lastProcessedCategories;
+    const cachedParentName = this.websocketService.lastProcessedParentCategoryName;
+
+    // console.log(`[CategoryNavigationComponent] ngOnInit - Initializing...`); // Removed
+
+    if (cachedCategories && cachedCategories.length > 0) {
+      this.categories = [...cachedCategories].sort((a: CategoryItem, b: CategoryItem) => {
+        const nameA = a.browseItemName?.toLowerCase() || '';
+        const nameB = b.browseItemName?.toLowerCase() || '';
+        if (nameA < nameB) return -1;
+        if (nameA > nameB) return 1;
+        return 0;
+      });
+
+      if (cachedParentName && cachedParentName.trim() !== '') {
+        this.currentTitle = cachedParentName;
+        this.titleChanged.emit(this.currentTitle);
+      }
+      // console.log(`[CategoryNavigationComponent] Initialized with ${this.categories.length} categories from cache. Title: "${this.currentTitle}"`); // Removed
+      this.cdr.detectChanges();
+    } else {
+      this.categories = [];
+      // console.log('[CategoryNavigationComponent] No cached categories to initialize with, or cache was empty.'); // Removed
+    }
+
     this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
-      // The data object will now be { categories: CategoryItem[], parentCategoryName?: string, type?: 'categories' }
+      // console.log('[CategoryNavigationComponent] ngOnInit - newUIMessageData received by subscription:', JSON.stringify(data)); // Removed
+
+      let categoriesChanged = false;
+      let titleUpdatedBySubscription = false;
+
       if (data.type === 'categories' && data.categories && Array.isArray(data.categories)) {
         const sortedCategories = [...data.categories].sort((a: CategoryItem, b: CategoryItem) => {
           const nameA = a.browseItemName?.toLowerCase() || '';
@@ -42,28 +70,41 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
           if (nameA > nameB) return 1;
           return 0;
         });
-        this.categories = sortedCategories;
+        // Check if categories actually changed to avoid unnecessary re-render if only title changed
+        if (JSON.stringify(this.categories) !== JSON.stringify(sortedCategories)) {
+            this.categories = sortedCategories;
+            categoriesChanged = true;
+        }
 
         if (data.parentCategoryName && data.parentCategoryName.trim() !== '') {
-             this.currentTitle = data.parentCategoryName;
-             this.titleChanged.emit(this.currentTitle);
-        } else {
-            // This is the root category list for a service.
-            // MainPlayerViewComponent has already set the title to the service name.
-            // Do not change or emit title here to avoid overriding it.
-            // If currentTitle was a sub-category, and now we are at root (e.g. user selected new provider),
-            // MainPlayerView will handle setting the new service name as title.
+          if (this.currentTitle !== data.parentCategoryName) {
+            this.currentTitle = data.parentCategoryName;
+            titleUpdatedBySubscription = true;
+          }
         }
+        // console.log(`[CategoryNavigationComponent] Updated with ${this.categories.length} categories from subscription. Title: "${this.currentTitle}"`); // Removed
       } else if (data.type === 'categories' && (data.categories === null || (Array.isArray(data.categories) && data.categories.length === 0))) {
-        this.categories = [];
-        // If a parent category name exists, it means we are in an empty sub-category.
-        if (data.parentCategoryName && data.parentCategoryName.trim() !== '') {
-            this.currentTitle = data.parentCategoryName; // Title is the parent we are "in"
-            this.titleChanged.emit(this.currentTitle + " (empty)"); // Indicate it's empty
+        if (this.categories.length > 0) {
+            categoriesChanged = true;
         }
-        // If no parentCategoryName, it's an empty root list for a service, title handled by MainPlayerView.
+        this.categories = [];
+
+        if (data.parentCategoryName && data.parentCategoryName.trim() !== '') {
+          const newTitle = data.parentCategoryName + " (empty)";
+          if (this.currentTitle !== newTitle) {
+            this.currentTitle = newTitle;
+            titleUpdatedBySubscription = true;
+          }
+        }
+        // console.log(`[CategoryNavigationComponent] Categories cleared or empty from subscription. Title: "${this.currentTitle}"`); // Removed
       }
-      // For now, assuming ProfileSelectionComponent triggers the first load.
+
+      if (titleUpdatedBySubscription) {
+          this.titleChanged.emit(this.currentTitle);
+      }
+      if (categoriesChanged || titleUpdatedBySubscription) {
+          this.cdr.detectChanges();
+      }
     });
   }
 
@@ -74,23 +115,14 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
   }
 
   selectCategory(category: CategoryItem): void {
-    // Normalize streamingMediaType for comparison
     const mediaType = category.streamingMediaType?.toLowerCase();
 
-    // Check if the type is explicitly browsable (e.g., Album, Artist, Playlist which can also be "played" directly)
-    // or if it's a generic type that isn't immediately playable (needs further browsing).
-    // The definition of "playable" vs "browsable" can be tricky.
-    // An Album can be "played" (play all tracks) or "browsed" (view tracks).
-    // For simplicity, we assume specific types are for browsing deeper.
-
-    // Example: If it's an Artist, Album, Playlist, or a generic Folder, browse deeper.
     if (this.browsableContainerTypes.some(type => mediaType?.includes(type.toLowerCase()))) {
       this.websocketService.browseCategorie(category);
       this.categorySelected.emit(category);
       this.currentTitle = category.browseItemName;
-      this.titleChanged.emit(this.currentTitle); // Emit title change
+      this.titleChanged.emit(this.currentTitle);
     }
-    // Else, if it's a directly playable type (like a Track or a Station)
     else if (this.playableMediaTypes.some(type => mediaType?.includes(type.toLowerCase()))) {
       const finalProviderKey = category.providerKey || this.currentProviderId;
 
@@ -112,18 +144,14 @@ export class CategoryNavigationComponent implements OnInit, OnDestroy {
       this.itemSelected.emit(playableItem);
       this.websocketService.playback(playableItem);
       this.currentTitle = playableItem.itemName;
-      this.titleChanged.emit(this.currentTitle); // Emit title change
+      this.titleChanged.emit(this.currentTitle);
     }
-    // Fallback for types not explicitly handled: attempt to browse.
     else {
       console.warn(`Unknown or ambiguous media type: ${category.streamingMediaType}. Attempting to browse.`);
       this.websocketService.browseCategorie(category);
       this.categorySelected.emit(category);
       this.currentTitle = category.browseItemName;
-      this.titleChanged.emit(this.currentTitle); // Emit title change
+      this.titleChanged.emit(this.currentTitle);
     }
   }
-
-  // goBack(): void method removed
-  // isAtRootLevel getter removed
 }
