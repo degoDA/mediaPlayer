@@ -68,6 +68,7 @@
   <app-full-screen-search
     *ngIf="showFullScreenSearch"
     (closeSearch)="toggleFullScreenSearch()"
-      [activeProfile]="activeProfileForSearchContext">
+      [activeProfile]="activeProfileForSearchContext"
+      (playableItemSelected)="onPlayableItemSelected($event)"> <!-- ADD THIS LINE -->
   </app-full-screen-search>
 </div>

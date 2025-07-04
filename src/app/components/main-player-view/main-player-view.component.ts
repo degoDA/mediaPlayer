@@ -146,13 +146,29 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  onPlayableItemSelected(item: MediaItem | CategoryItem): void {
-    // The playback command is already issued by CategoryNavigationComponent or FullScreenSearchComponent's onItemSelected
-    // this.selectedPlayableItem = item; // This property might not be needed if NowPlayingViewComponent subscribes directly
+  public onPlayableItemSelected(item: MediaItem | CategoryItem): void { // Make public if called from template directly
+    console.log('[MainPlayerView] onPlayableItemSelected called with item:', JSON.stringify(item));
 
-    this.previousViewBeforeNowPlaying = this.currentView; // Store current view (e.g., 'categories', 'profiles' if search was done from there)
+    // Determine the view before search was initiated or the view active when search was closed.
+    // this.currentView at this point is the view that was active when FullScreenSearchComponent emitted.
+    // If FullScreenSearchComponent was opened from 'profiles', currentView would be 'profiles'.
+    // If opened from 'categories', currentView would be 'categories'.
+    this.previousViewBeforeNowPlaying = this.currentView;
     this.currentView = 'nowPlayingFullScreen';
-    console.log('[MainPlayerView] Switched to nowPlayingFullScreen. Previous view was:', this.previousViewBeforeNowPlaying);
+
+    let titleForItem: string | undefined;
+    // Prioritize name from the item itself as mediaPlayerState might not be updated yet
+    if ('browseItemName' in item && item.browseItemName) {
+      titleForItem = item.browseItemName;
+    } else if ('itemName' in item && (item as MediaItem).itemName) {
+      titleForItem = (item as MediaItem).itemName;
+    }
+    // Fallback to station name from the item if it's a station and has that property directly
+    // (CategoryItem and MediaItem interfaces don't currently define stationName directly, it's in NowPlayingData)
+    // For now, the above is sufficient for most track/song items.
+
+    this.currentHeaderTitle = titleForItem || 'Now Playing';
+    console.log(`[MainPlayerView] Switched to nowPlayingFullScreen. Previous view: ${this.previousViewBeforeNowPlaying}. Header title set to: ${this.currentHeaderTitle}`);
   }
 
   // closeNowPlayingView(): void method removed

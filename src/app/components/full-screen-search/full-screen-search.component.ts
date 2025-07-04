@@ -18,11 +18,12 @@ import { environment } from '../../../environments/environment'; // For fallback
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FullScreenSearchComponent implements OnInit, OnDestroy {
-  @Input() activeProfile?: Profile | null; // Changed from currentProfileKey
+  @Input() activeProfile?: Profile | null;
   @Output() closeSearch = new EventEmitter<void>();
+  @Output() playableItemSelected = new EventEmitter<CategoryItem | MediaItem>(); // Added
 
   searchQuery: string = '';
-  selectedSearchCategory: string = 'artist'; // Changed default value
+  selectedSearchCategory: string = 'artist';
   searchCategories: string[] = ["artist", "song", "album", "station", "playlist", "podcastseries"];
 
   searchResults: (CategoryItem | MediaItem)[] = [];
@@ -82,15 +83,22 @@ export class FullScreenSearchComponent implements OnInit, OnDestroy {
       type = (item as MediaItem).mediaType!.toLowerCase();
     }
 
+    let isPlayable = false;
     if (type === 'track' || type === 'song' || type === 'station') {
+      isPlayable = true;
+    } else if (!('browseKey' in item && item.browseKey && item.providerKey)) {
+      // If it's not clearly browsable, assume it might be playable as a fallback
+      isPlayable = true;
+    }
+
+    if (isPlayable) {
       this.websocketService.playback(item);
-    } else {
-      if ('browseKey' in item && item.browseKey && item.providerKey) {
-         this.websocketService.browseCategorie(item as CategoryItem);
-      } else {
-        console.warn('[FullScreenSearchComponent] Selected item is not directly playable and lacks standard browse info. Attempting playback as fallback. Item:', item);
-        this.websocketService.playback(item);
-      }
+      this.playableItemSelected.emit(item); // Emit event
+    } else { // Is browsable
+       this.websocketService.browseCategorie(item as CategoryItem);
+       // When browsing, MainPlayerView will automatically switch to 'categories'
+       // because new category data will arrive, which CategoryNavigationComponent handles.
+       // The title will also update via CategoryNavigationComponent.
     }
     this.close();
   }
