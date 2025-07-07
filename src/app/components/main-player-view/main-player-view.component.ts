@@ -64,45 +64,95 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Ensure this.profiles is initialized if it's a class member being checked before WS response
+    // It's not currently a class member of MainPlayerViewComponent, data.profiles is directly from subscription.
+
     this.websocketService.connect(environment.webSocketUrl, environment.webSocketProtocol);
 
-    this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
-      // Existing logic for profiles, categories, player state would be here...
-      // For example, if data.profiles exists, update this.profiles etc.
-      // This example focuses on adding the msgNotification part.
+    let initialCheckDone = false;
+    this.currentHeaderTitle = 'Loading...'; // Initial transient title
 
+    this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
+      // Standard processing for notifications (should be present from previous implementation)
       if (data.hasOwnProperty('msgNotification')) {
         const notificationMsg = data.msgNotification;
         if (notificationMsg && typeof notificationMsg === 'string' && notificationMsg.trim() !== '') {
           this.currentNotification = notificationMsg;
-          this.cdr.detectChanges();
-
-          if (this.notificationTimeout) {
-            clearTimeout(this.notificationTimeout);
-          }
+          if (this.notificationTimeout) { clearTimeout(this.notificationTimeout); }
           this.notificationTimeout = setTimeout(() => {
             this.currentNotification = null;
             this.cdr.detectChanges();
           }, 7000);
+          this.cdr.detectChanges();
         } else if (notificationMsg === null || (typeof notificationMsg === 'string' && notificationMsg.trim() === '')) {
-          if (this.notificationTimeout) {
-            clearTimeout(this.notificationTimeout);
-          }
+          if (this.notificationTimeout) { clearTimeout(this.notificationTimeout); }
           this.currentNotification = null;
           this.cdr.detectChanges();
         }
       }
+      // Note: Title changes from children are handled by onSubViewTitleChanged directly.
 
-      // Placeholder for other data processing from newUIMessageData
-      if (data.profiles) { /* ... */ }
-      if (data.categories) { /* ... */ }
-      if (data.mediaPlayerState) { /* ... */ }
-      if (data.connected) { /* ... */ }
+      // Startup Logic (runs until initialCheckDone is true)
+      if (!initialCheckDone) {
+        const currentNowPlaying = this.websocketService.mediaPlayerState?.nowPlayingData;
+        // Use data.profiles if the current message contains profiles,
+        // otherwise, this logic might run multiple times if other messages come first.
+        // This implies profiles are expected to arrive via newUIMessageData.
+        const profilesFromData = data.profiles; // Assuming data might be { profiles: Profile[] }
 
+        if (currentNowPlaying?.trackTitle && currentNowPlaying.trackTitle.trim() !== '') {
+          console.log('[MainPlayerView] Startup: Detected active playback. Navigating to NowPlayingScreen.');
+          this.previousViewBeforeNowPlaying = 'profiles'; // Default previous view when starting in NowPlaying
+          this.currentView = 'nowPlayingFullScreen';
+          this.currentHeaderTitle = currentNowPlaying.trackTitle || currentNowPlaying.stationName || 'Now Playing';
+          initialCheckDone = true;
+          this.cdr.detectChanges();
+        } else if (profilesFromData && Array.isArray(profilesFromData) && profilesFromData.length > 0) {
+          // Only proceed if this message actually contains profiles
+          console.log('[MainPlayerView] Startup: No active playback. Profiles loaded. Checking for last used profile.');
+          const lastUsedProfileId = localStorage.getItem('lastUsedProfileId');
+          const profileToSelect = lastUsedProfileId
+            ? profilesFromData.find((p: Profile) => p.idProfile === lastUsedProfileId)
+            : undefined;
+
+          if (profileToSelect) {
+            console.log('[MainPlayerView] Startup: Last used profile found:', profileToSelect.name);
+            this.activeProfileIdForServiceView = profileToSelect.idProfile; // For ProfileSelectionComponent input
+            this.activeProfileForSearchContext = profileToSelect; // For search context
+            // The title will be set by ProfileSelectionComponent via titleChanged event
+            // when it processes autoSelectProfileId and calls its selectProfile.
+            // To set an immediate title:
+            this.currentHeaderTitle = `Services for ${profileToSelect.name || 'Profile'}`;
+          } else {
+            console.log('[MainPlayerView] Startup: No valid last used profile found, or no lastUsedProfileId.');
+            this.currentHeaderTitle = 'Select a Profile';
+            this.activeProfileIdForServiceView = undefined;
+            this.activeProfileForSearchContext = null;
+          }
+          this.currentView = 'profiles';
+          initialCheckDone = true;
+          this.cdr.detectChanges();
+        }
+        // If neither nowPlaying nor profiles are in this specific `data` message,
+        // initialCheckDone remains false, and we wait for the next message.
+      }
     });
+
+    // Fallback timeout if no relevant initial data received quickly
+    setTimeout(() => {
+      if (!initialCheckDone) {
+        console.log('[MainPlayerView] Startup: Timeout reached without initial state. Defaulting to profile selection view.');
+        this.currentHeaderTitle = 'Select a Profile';
+        this.currentView = 'profiles';
+        this.activeProfileIdForServiceView = undefined;
+        this.activeProfileForSearchContext = null;
+        initialCheckDone = true;
+        this.cdr.detectChanges();
+      }
+    }, 2500); // Increased timeout slightly to 2.5 seconds
   }
 
-  onProviderSelected(data: { providerId: string, profile: Profile }): void { // Signature updated
+  onProviderSelected(data: { providerId: string, profile: Profile }): void {
     this.selectedProviderId = data.providerId;
     if (data.profile && data.profile.idProfile) {
       this.activeProfileIdForServiceView = data.profile.idProfile;

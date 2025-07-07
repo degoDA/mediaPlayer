@@ -283,13 +283,17 @@ export class WebsocketService {
     if ('Device' in response) {
       if (
         // Response register client
-        response?.Device?.SubscriptionMgr?.WsConnectionsList?.Ws01
-          ?.RegisteredClientList
+        response?.Device?.SubscriptionMgr?.WsConnectionsList?.Ws01?.RegisteredClientList
       ) {
-        for (const key in response.Device.SubscriptionMgr.WsConnectionsList.Ws01
-          .RegisteredClientList) {
-          this.rcSessionId = key;
-          this.suscribe();
+        const clientList = response.Device.SubscriptionMgr.WsConnectionsList.Ws01.RegisteredClientList;
+        const firstRcSessionId = Object.keys(clientList)[0];
+        if (firstRcSessionId) {
+          this.rcSessionId = firstRcSessionId;
+          console.log('[WebsocketService] Client registered. RcSessionId:', this.rcSessionId);
+          this.suscribe(); // Call subscribe
+          this.requestCurrentPlayerStatus(); // ADD THIS CALL
+        } else {
+          console.error('[WebsocketService] RegisteredClientList found but no RcSessionId keys.');
         }
       }
       if (
@@ -565,5 +569,39 @@ export class WebsocketService {
     console.log('[WebsocketService] Sending search request:', JSON.stringify(msg));
     this.send(JSON.stringify(msg));
     // No changes to history stack or currentCategoryRequestMessage for search.
+  }
+
+  public requestCurrentPlayerStatus(): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      console.warn('[WebsocketService] WebSocket not connected. Cannot send request for player status.');
+      // Potentially queue this request or handle error differently
+      return;
+    }
+    if (!this.rcSessionId) {
+      console.warn('[WebsocketService] No rcSessionId available. Cannot send request for player status.');
+      // Potentially queue or retry
+      return;
+    }
+    if (!environment.playerId) {
+      console.error('[WebsocketService] environment.playerId is not defined. Cannot request player status.');
+      return;
+    }
+
+    const msg = {
+      Device: {
+        SubscriptionMgr: {
+          RequestAction: {
+            MsgId: uuidv1(), // Ensure uuidv1 is imported
+            RegistrationAction: "GetCresNextObject",
+            RegistrationActionOptions: {
+              RcSessionId: this.rcSessionId,
+              CresNextObject: `/Device/MediaPlayerNeXt/Players/${environment.playerId}`
+            }
+          }
+        }
+      }
+    };
+    console.log('[WebsocketService] Requesting current player status:', JSON.stringify(msg));
+    this.send(JSON.stringify(msg));
   }
 }
