@@ -4,9 +4,15 @@
   display: flex;
   flex-direction: column;
   height: 100%; /* Fill parent .content-area */
-  box-sizing: border-box; /* If it has padding */
+  box-sizing: border-box;
+  padding: 20px; /* Existing padding */
   justify-content: center; /* Vertically center its content */
+  /* align-items: center; /* Optional: if the wrappers themselves are narrower than container */
+  /* border: 2px solid cyan !important; */ /* REMOVED */
 }
+
+/* #profile-list-wrapper rule removed */
+/* #service-list-wrapper rule removed */
 
 .profile-selection-container h2 {
   color: var(--on-background-text-color); /* Use CSS variable */

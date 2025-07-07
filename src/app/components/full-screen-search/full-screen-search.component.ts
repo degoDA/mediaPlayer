@@ -67,14 +67,14 @@ export class FullScreenSearchComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log(`[FullScreenSearchComponent] Searching for "${this.searchQuery}", category: "${this.selectedSearchCategory}", profile: "${profileKeyToUse}"`);
+    // console.log(`[FullScreenSearchComponent] Searching for "${this.searchQuery}", category: "${this.selectedSearchCategory}", profile: "${profileKeyToUse}"`); // Removed
     this.isLoading = true;
     this.searchResults = [];
     this.websocketService.searchMedia(this.searchQuery.trim(), profileKeyToUse, this.selectedSearchCategory);
   }
 
   onItemSelected(item: CategoryItem | MediaItem): void {
-    console.log('[FullScreenSearchComponent] Item selected from search results:', item);
+    // console.log('[FullScreenSearchComponent] Item selected from search results:', item); // Removed
 
     let type: string | undefined;
     if ('streamingMediaType' in item && item.streamingMediaType) {

@@ -38,9 +38,12 @@
 }
 
 .scrollable-category-list-wrapper {
-  height: 500px; /* As requested */
-  overflow-y: auto; /* Ensure this is present */
-  /* Removed flex-grow, min-height, position:relative, and debug styles */
+  flex-grow: 1;       /* ADD THIS (or restore) */
+  min-height: 0;      /* ADD THIS (or restore) */
+  overflow-y: auto;   /* Ensure this is present */
+  /* height: 500px; */  /* REMOVE THIS */
+  /* position: relative; /* This was removed when fixed height was added, keep it removed for now */
+  /* Remove any temporary debug background/border styles if they are still here */
 }
 
 /* Grid container for category cards */

@@ -95,36 +95,29 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
       // Startup Logic (runs until initialCheckDone is true)
       if (!initialCheckDone) {
         const currentNowPlaying = this.websocketService.mediaPlayerState?.nowPlayingData;
-        // Use data.profiles if the current message contains profiles,
-        // otherwise, this logic might run multiple times if other messages come first.
-        // This implies profiles are expected to arrive via newUIMessageData.
-        const profilesFromData = data.profiles; // Assuming data might be { profiles: Profile[] }
+        const profilesFromData = data.profiles;
 
         if (currentNowPlaying?.trackTitle && currentNowPlaying.trackTitle.trim() !== '') {
-          console.log('[MainPlayerView] Startup: Detected active playback. Navigating to NowPlayingScreen.');
-          this.previousViewBeforeNowPlaying = 'profiles'; // Default previous view when starting in NowPlaying
+          // console.log('[MainPlayerView] Startup: Detected active playback. Navigating to NowPlayingScreen.'); // Removed
+          this.previousViewBeforeNowPlaying = 'profiles';
           this.currentView = 'nowPlayingFullScreen';
           this.currentHeaderTitle = currentNowPlaying.trackTitle || currentNowPlaying.stationName || 'Now Playing';
           initialCheckDone = true;
           this.cdr.detectChanges();
         } else if (profilesFromData && Array.isArray(profilesFromData) && profilesFromData.length > 0) {
-          // Only proceed if this message actually contains profiles
-          console.log('[MainPlayerView] Startup: No active playback. Profiles loaded. Checking for last used profile.');
+          // console.log('[MainPlayerView] Startup: No active playback. Profiles loaded. Checking for last used profile.'); // Removed
           const lastUsedProfileId = localStorage.getItem('lastUsedProfileId');
           const profileToSelect = lastUsedProfileId
             ? profilesFromData.find((p: Profile) => p.idProfile === lastUsedProfileId)
             : undefined;
 
           if (profileToSelect) {
-            console.log('[MainPlayerView] Startup: Last used profile found:', profileToSelect.name);
-            this.activeProfileIdForServiceView = profileToSelect.idProfile; // For ProfileSelectionComponent input
-            this.activeProfileForSearchContext = profileToSelect; // For search context
-            // The title will be set by ProfileSelectionComponent via titleChanged event
-            // when it processes autoSelectProfileId and calls its selectProfile.
-            // To set an immediate title:
+            // console.log('[MainPlayerView] Startup: Last used profile found:', profileToSelect.name); // Removed
+            this.activeProfileIdForServiceView = profileToSelect.idProfile;
+            this.activeProfileForSearchContext = profileToSelect;
             this.currentHeaderTitle = `Services for ${profileToSelect.name || 'Profile'}`;
           } else {
-            console.log('[MainPlayerView] Startup: No valid last used profile found, or no lastUsedProfileId.');
+            // console.log('[MainPlayerView] Startup: No valid last used profile found, or no lastUsedProfileId.'); // Removed
             this.currentHeaderTitle = 'Select a Profile';
             this.activeProfileIdForServiceView = undefined;
             this.activeProfileForSearchContext = null;
@@ -133,15 +126,13 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
           initialCheckDone = true;
           this.cdr.detectChanges();
         }
-        // If neither nowPlaying nor profiles are in this specific `data` message,
-        // initialCheckDone remains false, and we wait for the next message.
       }
     });
 
     // Fallback timeout if no relevant initial data received quickly
     setTimeout(() => {
       if (!initialCheckDone) {
-        console.log('[MainPlayerView] Startup: Timeout reached without initial state. Defaulting to profile selection view.');
+        // console.log('[MainPlayerView] Startup: Timeout reached without initial state. Defaulting to profile selection view.'); // Removed
         this.currentHeaderTitle = 'Select a Profile';
         this.currentView = 'profiles';
         this.activeProfileIdForServiceView = undefined;
@@ -163,7 +154,7 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
       this.currentHeaderTitle = this.currentServiceName || 'Categories';
     }
     this.currentView = 'categories';
-    console.log('Provider selected in main view:', data.providerId, 'Service name:', this.currentServiceName);
+    // console.log('Provider selected in main view:', data.providerId, 'Service name:', this.currentServiceName); // Removed
   }
 
   onProfileContextUpdated(profile: Profile | null): void {
@@ -196,38 +187,28 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  public onPlayableItemSelected(item: MediaItem | CategoryItem): void { // Make public if called from template directly
-    console.log('[MainPlayerView] onPlayableItemSelected called with item:', JSON.stringify(item));
+  public onPlayableItemSelected(item: MediaItem | CategoryItem): void {
+    // console.log('[MainPlayerView] onPlayableItemSelected called with item:', JSON.stringify(item)); // Removed
 
-    // Determine the view before search was initiated or the view active when search was closed.
-    // this.currentView at this point is the view that was active when FullScreenSearchComponent emitted.
-    // If FullScreenSearchComponent was opened from 'profiles', currentView would be 'profiles'.
-    // If opened from 'categories', currentView would be 'categories'.
     this.previousViewBeforeNowPlaying = this.currentView;
     this.currentView = 'nowPlayingFullScreen';
 
     let titleForItem: string | undefined;
-    // Prioritize name from the item itself as mediaPlayerState might not be updated yet
     if ('browseItemName' in item && item.browseItemName) {
       titleForItem = item.browseItemName;
     } else if ('itemName' in item && (item as MediaItem).itemName) {
       titleForItem = (item as MediaItem).itemName;
     }
-    // Fallback to station name from the item if it's a station and has that property directly
-    // (CategoryItem and MediaItem interfaces don't currently define stationName directly, it's in NowPlayingData)
-    // For now, the above is sufficient for most track/song items.
 
     this.currentHeaderTitle = titleForItem || 'Now Playing';
-    console.log(`[MainPlayerView] Switched to nowPlayingFullScreen. Previous view: ${this.previousViewBeforeNowPlaying}. Header title set to: ${this.currentHeaderTitle}`);
+    // console.log(`[MainPlayerView] Switched to nowPlayingFullScreen. Previous view: ${this.previousViewBeforeNowPlaying}. Header title set to: ${this.currentHeaderTitle}`); // Removed
   }
 
   // closeNowPlayingView(): void method removed
 
   onCategoryNavigation(category: CategoryItem): void {
-    // This event signifies that navigation is happening within CategoryNavigationComponent.
-    // The view should remain 'categories'.
-    this.currentView = 'categories'; // Ensure view is categories
-    console.log('Navigating to category in main view:', category.browseItemName);
+    this.currentView = 'categories';
+    // console.log('Navigating to category in main view:', category.browseItemName); // Removed
   }
 
   // onReturnToServiceSelection(): void method removed
@@ -237,74 +218,66 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
   }
 
   public switchToFullScreenPlayer(): void {
-    // Check if there's actually something playing before switching
     if (this.websocketService.mediaPlayerState?.nowPlayingData &&
         this.websocketService.mediaPlayerState.nowPlayingData.trackTitle &&
         this.websocketService.mediaPlayerState.nowPlayingData.trackTitle.trim() !== '') {
 
-      console.log('[MainPlayerView] Switching to full screen player. Current view:', this.currentView);
+      // console.log('[MainPlayerView] Switching to full screen player. Current view:', this.currentView); // Removed
       this.previousViewBeforeNowPlaying = this.currentView;
       this.currentView = 'nowPlayingFullScreen';
 
-      // Update header title based on current track, as user is focusing on it
-      // This assumes nowPlayingData is populated when this is called.
       this.currentHeaderTitle = this.websocketService.mediaPlayerState.nowPlayingData.trackTitle ||
                                 this.websocketService.mediaPlayerState.nowPlayingData.stationName ||
                                 'Now Playing';
     } else {
-      console.log('[MainPlayerView] Request to switch to full screen player, but no track data available.');
-      // Optionally, briefly show a notification: "Nothing is playing."
-      // For now, do nothing if no track is loaded.
+      console.log('[MainPlayerView] Request to switch to full screen player, but no track data available.'); // Kept
     }
   }
 
   goAppBack(): void {
-    console.log('[MainPlayerView] goAppBack called. Current view:', this.currentView);
+    // console.log('[MainPlayerView] goAppBack called. Current view:', this.currentView); // Removed
 
     if (this.showFullScreenSearch) {
       this.toggleFullScreenSearch();
-      console.log('[MainPlayerView] Closed full-screen search.');
+      // console.log('[MainPlayerView] Closed full-screen search.'); // Removed
       return;
     }
 
     if (this.currentView === 'nowPlayingFullScreen') {
-      this.currentView = this.previousViewBeforeNowPlaying || 'categories'; // Fallback to 'categories' or 'profiles'
-      console.log('[MainPlayerView] Exited nowPlayingFullScreen. Returning to:', this.currentView);
+      this.currentView = this.previousViewBeforeNowPlaying || 'categories';
+      // console.log('[MainPlayerView] Exited nowPlayingFullScreen. Returning to:', this.currentView); // Removed
       if (this.currentView === 'profiles') {
           this.currentHeaderTitle = this.activeProfileForSearchContext
               ? `Services for ${this.activeProfileForSearchContext.name || 'Profile'}`
               : 'Select a Profile';
       } else if (this.currentView === 'categories') {
-          this.currentHeaderTitle = this.currentServiceName || 'Categories'; // A sensible default
+          this.currentHeaderTitle = this.currentServiceName || 'Categories';
       }
       return;
     }
 
-    if (this.currentView === 'categories') { // Changed from 'categories' || 'player'
+    if (this.currentView === 'categories') {
       if (this.websocketService.selectBackCategory()) {
-        console.log('[MainPlayerView] Navigated back within categories via WebsocketService.');
+        // console.log('[MainPlayerView] Navigated back within categories via WebsocketService.'); // Removed
         this.currentView = 'categories';
-        // Title will be updated by CategoryNavigationComponent via (titleChanged) if parentCategoryName is available
         return;
       } else {
-        console.log('[MainPlayerView] No category history. Returning to profiles view to show services for profile:', this.activeProfileIdForServiceView);
+        // console.log('[MainPlayerView] No category history. Returning to profiles view to show services for profile:', this.activeProfileIdForServiceView); // Removed
         this.currentView = 'profiles';
-        // Title will be set by ProfileSelectionComponent via (titleChanged) when it auto-selects
         return;
       }
     }
 
     if (this.currentView === 'profiles') {
       if (this.activeProfileIdForServiceView || this.activeProfileForSearchContext) {
-        console.log('[MainPlayerView] In service list view. Returning to main profile list.');
+        // console.log('[MainPlayerView] In service list view. Returning to main profile list.'); // Removed
         this.activeProfileIdForServiceView = undefined;
         this.activeProfileForSearchContext = null;
         this.currentHeaderTitle = 'Select a Profile';
         this.currentServiceName = undefined;
-        // ProfileSelectionComponent's showProfiles() will emit the 'Select a Profile' title.
         return;
       } else {
-        console.log('[MainPlayerView] At root profile list, no further in-app back action defined for now.');
+        console.log('[MainPlayerView] At root profile list, no further in-app back action defined for now.'); // Kept
       }
     }
   }
