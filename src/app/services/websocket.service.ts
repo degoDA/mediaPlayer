@@ -259,23 +259,51 @@ export class WebsocketService {
         const searchResults: CategoryItem[] = [];
         for (const itemData of searchMenuDataItemsArray) {
           if (!itemData) continue;
-          const resultItem: CategoryItem = { /* ... mapping ... */ }; // Content omitted for brevity
+
+          const resultItem: CategoryItem = {
+            idCategorie: itemData.BrowseKey || `search_item_${Math.random().toString(36).substr(2, 9)}`,
+            browseItemName: itemData.BrowseItemName || 'Unknown Item',
+            signedData: itemData.SignedData !== undefined ? itemData.SignedData : null,
+            urlIcon: itemData.UrlIcon,
+            browseKey: itemData.BrowseKey || '',
+            providerKey: itemData.MediaTypeMetaData?.ProviderKey,
+            streamingMediaType: itemData.StreamingMediaType || 'unknown',
+            artistName: itemData.MediaTypeMetaData?.ArtistName,
+            albumName: itemData.MediaTypeMetaData?.AlbumName
+          };
+
+          if (!itemData.BrowseKey) {
+            console.warn('[WebsocketService] Search result item (from array) is missing critical BrowseKey. ID was generated. ItemData:', JSON.stringify(itemData));
+          }
           searchResults.push(resultItem);
         }
-        // console.log('[WebsocketService] Processed SearchMenu results (from array):', searchResults); // Removed
         this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' });
       } else if (searchMenuDataItemsArray && typeof searchMenuDataItemsArray === 'object' && !Array.isArray(searchMenuDataItemsArray)) {
         const searchResults: CategoryItem[] = [];
         for (const id in searchMenuDataItemsArray) {
             const itemData = searchMenuDataItemsArray[id];
             if (!itemData) continue;
-            const resultItem: CategoryItem = { /* ... mapping ... */ }; // Content omitted for brevity
+
+            const resultItem: CategoryItem = {
+                idCategorie: id,
+                browseItemName: itemData.BrowseItemName || 'Unknown Item',
+                signedData: itemData.SignedData !== undefined ? itemData.SignedData : null,
+                urlIcon: itemData.UrlIcon,
+                browseKey: itemData.BrowseKey || '',
+                providerKey: itemData.MediaTypeMetaData?.ProviderKey,
+                streamingMediaType: itemData.StreamingMediaType || 'unknown',
+                artistName: itemData.MediaTypeMetaData?.ArtistName,
+                albumName: itemData.MediaTypeMetaData?.AlbumName
+            };
+
+            if (!itemData.BrowseKey) {
+              console.warn('[WebsocketService] Search result item (from object) is missing critical BrowseKey. ItemData:', JSON.stringify(itemData));
+            }
             searchResults.push(resultItem);
         }
-        // console.log('[WebsocketService] Processed SearchMenu results (from object):', searchResults); // Removed
         this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' });
       } else if (response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu) {
-        console.warn('[WebsocketService] SearchMenu results MenuDataItems not found or not a recognized structure. Response path existed.', response.Device.MediaNavigation.RegisteredClientMenus[this.rcSessionId].MenuUpdates.SearchMenu); // Kept
+        console.warn('[WebsocketService] SearchMenu results MenuDataItems not found or not a recognized structure. Response path existed.', response.Device.MediaNavigation.RegisteredClientMenus[this.rcSessionId].MenuUpdates.SearchMenu);
         this.reportUIMessageData({ searchResults: [], type: 'searchResults' });
       }
     }
