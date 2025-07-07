@@ -4,6 +4,7 @@
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
+  justify-content: center; /* ADD THIS */
   /* background-color: var(--background-color); /* Inherits */
   /* background-color: lightgreen !important; /* Removed temporary debugging */
 }

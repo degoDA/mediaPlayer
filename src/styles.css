@@ -61,8 +61,15 @@ html, body {
 body {
   background-color: var(--background-color);
   color: var(--on-background-text-color);
-  font-family: Arial, sans-serif; /* Keep existing or suggest a new one */
+  font-family: 'Montserrat', sans-serif; /* UPDATED */
   /* margin: 0; and padding: 0; moved to html, body rule */
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: 'Montserrat', sans-serif; /* ADDED/UPDATED */
 }
 
 h1, h2, h3, h4, h5, h6 {

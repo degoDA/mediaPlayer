@@ -13,24 +13,26 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  /* background-color: var(--background-color); /* This will be inherited from .content-area or body */
+  justify-content: center; /* Vertically center .now-playing-panel */
+  align-items: center; /* Horizontally center .now-playing-panel */
+  /* background-color: var(--background-color); /* This will be inherited */
 }
 
 .now-playing-panel {
-  background-color: var(--background-color); /* Or var(--surface-color) if distinct panel look needed */
+  background-color: var(--background-color);
   padding: 20px;
-  border-radius: 0; /* No radius if it's filling the area */
-  box-shadow: none; /* No shadow if it's not a floating panel anymore */
-  /* border: 1px solid var(--border-color); /* Optional border */
+  border-radius: var(--button-border-radius); /* Restore radius for panel look */
+  box-shadow: var(--card-box-shadow); /* Restore shadow for panel look */
 
-  width: 100%;
-  height: 100%; /* Panel fills the new container */
+  width: 100%; /* Panel takes full width of centered alignment from parent */
+  max-width: 800px; /* Panel has a max-width, so align-items on parent is useful */
+  /* height: 100%; /* REMOVE this if parent is centering it and it should size to content or max-height */
+  max-height: 90vh; /* Keep max-height to prevent overflow on short viewports */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  overflow-y: auto; /* The panel itself will scroll if its content is too tall */
-  position: relative; /* Keep for absolute positioning of close button */
-  /* z-index not needed if not an overlay */
+  overflow-y: auto;
+  position: relative;
 }
 
 .panel-close-button {

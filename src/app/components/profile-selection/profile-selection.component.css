@@ -1,6 +1,11 @@
 .profile-selection-container {
-  padding: 20px;
+  padding: 20px; /* Existing padding */
   /* font-family: Arial, sans-serif; /* Inherits from body */
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Fill parent .content-area */
+  box-sizing: border-box; /* If it has padding */
+  justify-content: center; /* Vertically center its content */
 }
 
 .profile-selection-container h2 {
