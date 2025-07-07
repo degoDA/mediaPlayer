@@ -9,6 +9,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: fadeIn 0.3s ease-out forwards; /* ADD THIS LINE */
+  /* opacity: 0; /* REMOVE this if animation starts from opacity 0 via keyframes */
 }
 
 .search-panel {

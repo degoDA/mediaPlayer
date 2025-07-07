@@ -112,6 +112,15 @@
   /* background-color: lightblue !important; /* Removed temporary for debugging */
 }
 
+/* Target the components when they are rendered by ngSwitch */
+.content-area > div > app-profile-selection,
+.content-area > div > app-category-navigation,
+.content-area > div > app-now-playing-view {
+  animation: fadeIn 0.3s ease-out forwards; /* Use the global fadeIn */
+  width: 100%; /* Ensure they take full width of the content area's flex item */
+  height: 100%; /* Ensure they take full height */
+}
+
 .player-footer {
   background-color: var(--surface-color); /* Use CSS variable */
   padding: 10px;
