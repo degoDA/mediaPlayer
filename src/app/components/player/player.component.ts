@@ -15,15 +15,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
   mediaPlayerState?: MediaPlayerState;
   private uiSubscription!: Subscription;
 
-  // Removed properties:
-  // playbackProgress: number = 0;
-  // private localProgressInterval: any = null;
-  // private lastKnownElapsedSec: number = 0;
-  // private lastElapsedSecTimestamp: number = 0;
-  // private currentTrackDurationSec: number = 0;
-  // private isLocallyUpdatingProgress: boolean = false;
-  // public currentFormattedElapsedTime: string = '00:00';
-
   @Output() requestFullScreenPlayer = new EventEmitter<void>();
 
   constructor(private websocketService: WebsocketService) {}
@@ -43,20 +34,12 @@ export class PlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  // timeToSeconds method removed
-  // formatTimeDisplay method removed
-  // calculateProgress method removed
-  // startLocalProgressTimer method removed
-  // stopLocalProgressTimer method removed
 
   private handlePlaybackStateChange(newState: MediaPlayerState): void {
-    // console.log('[PlayerComponent] handlePlaybackStateChange received new state (simplified):', JSON.stringify(newState)); // Optional: for debugging
     this.mediaPlayerState = newState;
-    // No progress calculation or timer management needed in this simplified component
   }
 
   public onExpandClicked(): void {
-    // console.log('[PlayerComponent] Expand button clicked'); // Optional: for debugging
     this.requestFullScreenPlayer.emit();
   }
 

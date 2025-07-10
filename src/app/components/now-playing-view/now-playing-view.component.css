@@ -19,14 +19,8 @@
 }
 
 .now-playing-panel {
-  background-color: var(--background-color);
-  padding: 20px;
-  border-radius: var(--button-border-radius); /* Restore radius for panel look */
-  box-shadow: var(--card-box-shadow); /* Restore shadow for panel look */
-
   width: 100%; /* Panel takes full width of centered alignment from parent */
   max-width: 800px; /* Panel has a max-width, so align-items on parent is useful */
-  /* height: 100%; /* REMOVE this if parent is centering it and it should size to content or max-height */
   max-height: 90vh; /* Keep max-height to prevent overflow on short viewports */
   display: flex;
   flex-direction: column;

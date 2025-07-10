@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="header-content-wrapper"> <!-- New wrapper for flex layout -->
       <button class="header-main-back-button" (click)="goAppBack()" aria-label="Go back">
-        &lt; Back
+        <span class="back-icon">&lt;</span> Back
       </button>
       <h2 class="header-title">{{ currentHeaderTitle }}</h2> <!-- Re-added and bound -->
       <button class="search-toggle-button" (click)="toggleFullScreenSearch()" aria-label="Search">
@@ -16,7 +16,7 @@
   </header>
 
   <main class="content-area">
-    <div [ngSwitch]="currentView">
+    <div [ngSwitch]="currentView" style="height: 100%;">
       <app-profile-selection
         *ngSwitchCase="'profiles'"
         [autoSelectProfileId]="activeProfileIdForServiceView"

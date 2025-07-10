@@ -41,7 +41,7 @@
   flex-grow: 1;       /* ADD THIS (or restore) */
   min-height: 0;      /* ADD THIS (or restore) */
   overflow-y: auto;   /* Ensure this is present */
-  /* height: 500px; */  /* REMOVE THIS */
+
   /* position: relative; /* This was removed when fixed height was added, keep it removed for now */
   /* Remove any temporary debug background/border styles if they are still here */
 }
@@ -58,19 +58,14 @@
 
 /* Individual category card styling */
 .card.category-card {
-  background-color: var(--card-background-color);
-  border: 1px solid var(--card-border-color);
-  border-radius: var(--button-border-radius); /* Using button-radius for consistency */
-   padding: 10px; /* Changed from 15px */
-  box-shadow: var(--card-box-shadow);
+  padding: 10px; /* Changed from 15px */
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   display: flex;
-   flex-direction: row; /* Changed to row for side-by-side */
-   align-items: center; /* Align items vertically in the center of the row */
-   /* min-height: 150px; /* REMOVED */
-   /* text-align: center; /* Removed, text alignment handled by inner sections */
-   /* justify-content: space-between; /* Removed, flex items will manage their own space */
+  flex-direction: row; /* Changed to row for side-by-side */
+  align-items: center; /* Align items vertically in the center of the row */
+  background: #152426 0% 0% no-repeat padding-box;
+  box-shadow: 0px 5px 10px #000000B3;
 }
 
 .card.category-card:hover {

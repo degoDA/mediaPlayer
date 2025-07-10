@@ -19,7 +19,6 @@
   <!-- Display Services for Selected Profile -->
   <div *ngIf="selectedProfile"> <!-- ID removed -->
     <!-- <h2>Services for {{ selectedProfile.name }}</h2> Removed -->
-    <button class="back-button" (click)="showProfiles()">← Back to Profiles</button>
     <div class="cards-container service-cards-container">
       <div *ngIf="servicesForSelectedProfile.length === 0" class="no-services-message">
         No services found for this profile.
@@ -29,6 +28,11 @@
           <h3 class="card-title">{{ provider.name }}</h3>
         </div>
       </div>
+      <div class="card" (click)="showProfiles()">
+      <div class="card-content">
+        <h3 class="card-title" style="color: var(--secondary-text-color)">Profiles</h3>
+      </div>
+    </div>
     </div>
   </div>
 </div>

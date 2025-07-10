@@ -5,420 +5,565 @@ import { v1 as uuidv1 } from 'uuid';
 import { Profile, Provider } from '../interfaces/profile.interface';
 import { CategoryItem } from '../interfaces/category.interface';
 import { MediaItem } from '../interfaces/media.interface';
-import { NowPlayingData, MediaPlayerState } from '../interfaces/player.interface'; // PlaybackAction interface might be unused now
+import { NowPlayingData, PlaybackAction, MediaPlayerState } from '../interfaces/player.interface';
 
 @Injectable({ providedIn: 'root' })
 export class WebsocketService {
   private socket?: WebSocket;
-  private messages$ = new Subject<string>(); // For raw messages, if ever needed
-  public rcSessionId: string = ''; // Made public for easier access if MainPlayerView needs it for direct calls (though search uses profileKey)
-
-  // UIMessageDataSource is the main observable for components to get structured data
-  public UIMessageDataSource = new BehaviorSubject<any>({}); // Initialize with empty object
-  public newUIMessageData = this.UIMessageDataSource.asObservable();
-
-  public profiles: Profile[] = [];
-  public categories: CategoryItem[] = [];
-  public mediaPlayerState: MediaPlayerState = {};
-
+  private messages$ = new Subject<string>();
+  private rcSessionId: string = '';
+  UIMessageDataSource = new BehaviorSubject<any>(''); // Keep any for now, or define a UIMessage interface
+  newUIMessageData = this.UIMessageDataSource.asObservable();
+  profiles: Profile[] = [];
+  categories: CategoryItem[] = [];
+  // nowPlaying: NowPlayingData = {} as NowPlayingData; // Will be part of mediaPlayerState
+  // elapsedSec: string = '0'; // Will be part of mediaPlayerState
+  mediaPlayerState: MediaPlayerState = {};
+  // public backCategory: any = {}; // Removed
   private categoryHistoryStack: any[] = [];
   private currentCategoryRequestMessage: any = null;
 
-  // Caching for restoring category view
-  public lastProcessedCategories: CategoryItem[] = [];
-  public lastProcessedParentCategoryName?: string;
-
-  constructor() {}
+  public lastProcessedCategories: CategoryItem[] = []; // Added
+  public lastProcessedParentCategoryName?: string; // Added
 
   connect(url: string, protocol: string): void {
-    if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
-      console.log('[WebsocketService] WebSocket already connected or connecting.');
-      return;
-    }
-    console.log('[WebsocketService] Connecting to:', url, 'with protocol:', protocol);
     this.socket = new WebSocket(url, protocol);
 
     this.socket.onmessage = (event) => {
+      console.log('[WebsocketService] Raw WebSocket message received:', event.data);
       const rawData = event.data as string;
+
+      // Attempt to split if "}{" is found, indicating potential concatenation.
+      // This regex looks for "}" followed by optional whitespace then "{".
       const messageParts = rawData.replace(/}\s*{/g, '}\n{').split('\n');
 
       for (const part of messageParts) {
-        if (part.trim() === '') continue;
+        if (part.trim() === '') {
+          continue;
+        }
         try {
           const parsedResponse = JSON.parse(part);
+          console.log('[WebsocketService] Processing parsed message part:', parsedResponse);
 
-          const actionsPath = parsedResponse?.Device?.MediaPlayerNeXt?.Players?.[environment.playerId]?.AvailableActions;
+          // Check and correct AvailableActions if it's an object instead of an array
+          const actionsPath = parsedResponse?.Device?.MediaPlayerNeXt?.Players?.Player01?.AvailableActions;
           if (actionsPath && typeof actionsPath === 'object' && !Array.isArray(actionsPath)) {
-            console.warn('[WebsocketService] Received AvailableActions as an object, converting to empty array. Original:', actionsPath); // Kept
-            if (parsedResponse.Device?.MediaPlayerNeXt?.Players?.[environment.playerId]) {
-                parsedResponse.Device.MediaPlayerNeXt.Players[environment.playerId].AvailableActions = [];
+            console.warn('[WebsocketService] Received AvailableActions as an object, converting to empty array. Original:', actionsPath);
+            // Ensure path to AvailableActions exists before assignment
+            if (parsedResponse.Device && parsedResponse.Device.MediaPlayerNeXt && parsedResponse.Device.MediaPlayerNeXt.Players && parsedResponse.Device.MediaPlayerNeXt.Players.Player01) {
+                parsedResponse.Device.MediaPlayerNeXt.Players.Player01.AvailableActions = [];
             }
           }
+
           this.processResponse(parsedResponse);
-          // this.messages$.next(parsedResponse); // Raw message stream not primary focus
+          this.messages$.next(parsedResponse); // Consider if this should be the original `part` on error, or structured error.
+
         } catch (e) {
-          console.error('[WebsocketService] Error parsing JSON message part. Part:', part, 'Error:', e); // Kept
-          // console.error('[WebsocketService] Offending raw data:', event.data); // Redundant with part
+          console.error('[WebsocketService] Error parsing JSON message part. Part:', part, 'Error:', e);
+          // Optionally, you could emit an error on messages$ or handle differently
+          // this.messages$.error(new Error(`Failed to parse message part: ${part}`));
         }
       }
     };
 
     this.socket.onopen = () => {
-      console.log('[WebsocketService] WebSocket connection opened.'); // Kept
       this.registerClient();
-      this.reportUIMessageData({ connected: true, type: 'connectionStatus' });
+      this.reportUIMessageData({ connected: true });
     };
-    this.socket.onerror = (error) => console.error('[WebsocketService] WebSocket error:', error); // Kept
-    this.socket.onclose = (event) => {
-      console.log('[WebsocketService] WebSocket closed.', event); // Kept
-      this.rcSessionId = '';
-      this.reportUIMessageData({ connected: false, type: 'connectionStatus' });
-      // Optionally implement reconnection logic here
-    };
+    this.socket.onerror = (error) => console.error('WebSocket error', error);
+    this.socket.onclose = () => console.log('WebSocket closed');
   }
 
-  private send(message: string): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(message);
-    } else {
-      console.error('[WebsocketService] WebSocket not connected. Cannot send message:', message); // Kept
-    }
-  }
-
-  private reportUIMessageData(data: any): void {
-    this.UIMessageDataSource.next(data);
-  }
-
-  public registerClient(): void {
-    const msg = {
-      Device: { SubscriptionMgr: { RequestAction: {
-        MsgId: uuidv1(),
-        RegistrationAction: 'RegisterClient',
-        RegistrationActionOptions: { RegisteringClientIds: [environment.clientId] },
-      }}},
-    };
-    this.send(JSON.stringify(msg));
-  }
-
-  public subscribeToCoreObjects(): void { // Renamed for clarity
-    if (!this.rcSessionId) {
-        console.warn('[WebsocketService] Cannot subscribe: rcSessionId is not set.');
-        return;
-    }
-    const msg = {
-      Device: { SubscriptionMgr: { RequestAction: {
-        MsgId: uuidv1(),
-        RegistrationAction: 'SubscribeToObject',
-        RegistrationActionOptions: {
-          RcSessionId: this.rcSessionId,
-          CresNextPath: [
-            `/Device/MediaNavigation/RegisteredClientMenus/\${this.rcSessionId}`,
-            '/Device/MediaFavorites',
-            `/Device/MediaPlayerNeXt/Players/\${environment.playerId}`,
-          ],
+  registerClient() {
+    let msg = {
+      Device: {
+        SubscriptionMgr: {
+          RequestAction: {
+            MsgId: uuidv1(),
+            RegistrationAction: 'RegisterClient',
+            RegistrationActionOptions: {
+              RegisteringClientIds: [environment.clientId],
+            },
+          },
         },
-      }}},
+      },
     };
     this.send(JSON.stringify(msg));
   }
 
-  public requestCurrentPlayerStatus(): void {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN || !this.rcSessionId) {
-      console.warn('[WebsocketService] Cannot request player status: WebSocket not ready or no rcSessionId.'); // Kept
-      return;
-    }
-    if (!environment.playerId) {
-      console.error('[WebsocketService] environment.playerId is not defined. Cannot request player status.'); // Kept
-      return;
-    }
-    const msg = { Device: { SubscriptionMgr: { RequestAction: {
-      MsgId: uuidv1(),
-      RegistrationAction: "GetCresNextObject",
-      RegistrationActionOptions: {
-        RcSessionId: this.rcSessionId,
-        CresNextObject: `/Device/MediaPlayerNeXt/Players/\${environment.playerId}`
+  suscribe() {
+    let msg = {
+      Device: {
+        SubscriptionMgr: {
+          RequestAction: {
+            MsgId: uuidv1(),
+            RegistrationAction: 'SubscribeToObject',
+            RegistrationActionOptions: {
+              RcSessionId: this.rcSessionId,
+              CresNextPath: [
+                '/Device/MediaNavigation/RegisteredClientMenus/' +
+                  this.rcSessionId,
+                '/Device/MediaFavorites',
+                '/Device/MediaPlayerNeXt/Players/Player01',
+              ],
+            },
+          },
+        },
+      },
+    };
+    this.send(JSON.stringify(msg));
+  }
+
+  homeScreen() {
+    let msg = {
+      Device: {
+        MediaNavigation: {
+          RequestAction: {
+            RcSessionId: this.rcSessionId,
+            MsgId: uuidv1(),
+            ProfileKey: environment.profileKey,
+            MenuCategory: 'HomeScreenMenu',
+            MenuCategoryOptions: {
+              HomeScreenCategory: 'All',
+              ItemCount: 50,
+              ItemOffset: 0,
+            },
+          },
+        },
+      },
+    };
+    this.send(JSON.stringify(msg));
+  }
+
+  streamingProviders() {
+    let msg = {
+      Device: {
+        SubscriptionMgr: {
+          RequestAction: {
+            MsgId: uuidv1(),
+            RegistrationAction: 'GetCresNextObject',
+            RegistrationActionOptions: {
+              RcSessionId: this.rcSessionId,
+              CresNextObject:
+                '/Device/StreamingServices/UserProfiles/',
+            },
+          },
+        },
+      },
+    };
+    this.send(JSON.stringify(msg));
+  }
+
+  browseProvider(idProvider: string){
+    let msg = {
+      "Device": {
+        "MediaNavigation": {
+         "RequestAction": {
+            "RcSessionId": this.rcSessionId,
+            "MsgId": uuidv1(),
+            "ProfileKey": environment.profileKey,
+            "MenuCategory": "ProviderBrowseMenu",
+            "MenuCategoryOptions": {
+              "ProviderKey": idProvider,
+              "BrowseKey": idProvider,
+              "ItemCount": 50,
+              "ItemOffset": 0
+            }
+          }
+        }
       }
-    }}}};
+    }
     this.send(JSON.stringify(msg));
+    // this.saveCategory(msg) // Removed
+    this.categoryHistoryStack = []; // Clear history for new provider
+    this.currentCategoryRequestMessage = JSON.parse(JSON.stringify(msg)); // Store a copy
   }
 
-  public streamingProviders(): void {
-    if (!this.rcSessionId) { console.warn('[WebsocketService] No rcSessionId for streamingProviders'); return; }
-    const msg = { Device: { SubscriptionMgr: { RequestAction: {
-      MsgId: uuidv1(),
-      RegistrationAction: 'GetCresNextObject',
-      RegistrationActionOptions: { RcSessionId: this.rcSessionId, CresNextObject: '/Device/StreamingServices/UserProfiles/' },
-    }}}};
-    this.send(JSON.stringify(msg));
-  }
-
-  public browseProvider(idProvider: string): void {
-    if (!this.rcSessionId) { console.warn('[WebsocketService] No rcSessionId for browseProvider'); return; }
-    const msg = { Device: { MediaNavigation: { RequestAction: {
-      RcSessionId: this.rcSessionId, MsgId: uuidv1(), ProfileKey: environment.profileKey,
-      MenuCategory: 'ProviderBrowseMenu',
-      MenuCategoryOptions: { ProviderKey: idProvider, BrowseKey: idProvider, ItemCount: 50, ItemOffset: 0 }
-    }}}};
-    this.send(JSON.stringify(msg));
-    this.categoryHistoryStack = [];
-    this.currentCategoryRequestMessage = JSON.parse(JSON.stringify(msg));
-  }
-
-  public browseCategorie(categoryToEnter: CategoryItem): void {
-    if (!this.rcSessionId) { console.warn('[WebsocketService] No rcSessionId for browseCategorie'); return; }
+  browseCategorie(categoryToEnter: CategoryItem){ // Renamed param for clarity
+    // Before sending the new message, save the current request message (which led to this list)
     if (this.currentCategoryRequestMessage) {
-      this.categoryHistoryStack.push(JSON.parse(JSON.stringify(this.currentCategoryRequestMessage)));
+      this.categoryHistoryStack.push(JSON.parse(JSON.stringify(this.currentCategoryRequestMessage))); // Store a copy
     }
-    const newMsg = { Device: { MediaNavigation: { RequestAction: {
-      RcSessionId: this.rcSessionId, MsgId: uuidv1(), ProfileKey: environment.profileKey,
-      MenuCategory: 'ProviderBrowseMenu',
-      MenuCategoryOptions: {
-        ProviderKey: categoryToEnter.providerKey, BrowseKey: categoryToEnter.browseKey,
-        ItemCount: 50, ItemOffset: 0, SignedData: categoryToEnter.signedData
+
+    const newMsg = { // Renamed to newMsg for clarity
+      "Device": {
+        "MediaNavigation": {
+          "RequestAction": {
+            "RcSessionId": this.rcSessionId,
+            "MsgId": uuidv1(),
+            "ProfileKey": environment.profileKey,
+            "MenuCategory": "ProviderBrowseMenu",
+            "MenuCategoryOptions": {
+              "ProviderKey": categoryToEnter.providerKey,
+              "BrowseKey": categoryToEnter.browseKey,
+              "ItemCount": 50,
+              "ItemOffset": 0,
+              "SignedData": categoryToEnter.signedData
+            }
+          }
+        }
       }
-    }}}};
+    };
     this.send(JSON.stringify(newMsg));
-    this.currentCategoryRequestMessage = JSON.parse(JSON.stringify(newMsg));
+    this.currentCategoryRequestMessage = JSON.parse(JSON.stringify(newMsg)); // Update current request
+    // Old call to saveCategory(category) removed
   }
 
-  public searchMedia(searchQuery: string, profileKey: string, searchCategory: string = 'song'): void {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN || !this.rcSessionId) {
-      console.warn('[WebsocketService] WebSocket/Session not ready for search.'); return; // Kept
-    }
-    const resolvedProfileKey = profileKey || environment.profileKey;
-    if (!resolvedProfileKey) {
-      console.warn('[WebsocketService] No profileKey for search.'); return; // Kept
-    }
-    const msg = { Device: { MediaNavigation: { RequestAction: {
-      RcSessionId: this.rcSessionId, MsgId: uuidv1(), ProfileKey: resolvedProfileKey,
-      MenuCategory: 'SearchMenu',
-      MenuCategoryOptions: {
-        SearchProviderKey: 'ALL', SearchText: searchQuery, SearchCategory: searchCategory,
-        ItemCount: 50, ItemOffset: 0
+  playback(item: CategoryItem | MediaItem){ // Updated type to allow MediaItem as well
+    let msg = {
+      "Device": {
+        "MediaPlayerNeXt": {
+          "RequestAction": {
+            "RcSessionId": this.rcSessionId,
+            "MsgId": uuidv1(),
+            "PlayerId": environment.playerId,
+            "ActionId": "LoadSource",
+            "ActionIdOptions": {
+              "ProfileKey": environment.profileKey,
+              // Assuming browseKey from CategoryItem or MediaItem is used as ProviderKey here
+              "ProviderKey": item.browseKey,
+              "AudioSourceUrl": "", // This might need to be populated from item if available
+              "AutoPlay": true,
+              "SignedData": item.signedData
+            }
+          }
+        }
       }
-    }}}};
+    }
     this.send(JSON.stringify(msg));
   }
 
-  public playback(item: CategoryItem | MediaItem): void {
-    if (!this.rcSessionId) { console.warn('[WebsocketService] No rcSessionId for playback'); return; }
-    const msg = { Device: { MediaPlayerNeXt: { RequestAction: {
-      RcSessionId: this.rcSessionId, MsgId: uuidv1(), PlayerId: environment.playerId, ActionId: 'LoadSource',
-      ActionIdOptions: {
-        ProfileKey: environment.profileKey,
-        ProviderKey: item.providerKey || (item as any).ProviderKey,
-        AudioSourceUrl: "",
-        AutoPlay: true, SignedData: item.signedData
+  playbackAction(action: string){ // Action could be typed if specific actions are known e.g. 'PlayPause' | 'Next'
+    // console.log('[WebsocketService] playbackAction called with action:', action); // Removed
+    let msg = {
+      "Device": {
+        "MediaPlayerNeXt": {
+          "RequestAction": {
+            "RcSessionId": this.rcSessionId,
+            "MsgId": uuidv1(),
+            "PlayerId": environment.playerId,
+            "ActionId": action,
+            "ActionIdOptions": {}
+          }
+        }
       }
-    }}}};
+    };
+    // console.log('[WebsocketService] Sending playback action message:', JSON.stringify(msg)); // Removed
     this.send(JSON.stringify(msg));
   }
 
-  public playbackAction(action: string): void {
-    if (!this.rcSessionId) { console.warn('[WebsocketService] No rcSessionId for playbackAction'); return; }
-    const msg = { Device: { MediaPlayerNeXt: { RequestAction: {
-      RcSessionId: this.rcSessionId, MsgId: uuidv1(), PlayerId: environment.playerId,
-      ActionId: action, ActionIdOptions: {}
-    }}}};
-    this.send(JSON.stringify(msg));
-  }
-
-  public selectBackCategory(): boolean {
+  selectBackCategory(): boolean {
     if (this.categoryHistoryStack.length > 0) {
-      const previousMsg = this.categoryHistoryStack.pop();
-      if (previousMsg) {
-        this.send(JSON.stringify(previousMsg));
-        this.currentCategoryRequestMessage = previousMsg;
-        return true;
+      const previousCategoryRequestMessage = this.categoryHistoryStack.pop();
+      if (previousCategoryRequestMessage) {
+        this.send(JSON.stringify(previousCategoryRequestMessage));
+        // When we go back, the message we just sent becomes the new "current"
+        this.currentCategoryRequestMessage = previousCategoryRequestMessage;
+        return true; // Successfully went back
       }
     }
-    return false;
+    // If stack becomes empty or was empty, potentially clear current or set to a root/home state
+    // For now, if stack is empty, there's no "current" defined by back action.
+    // Consider if currentCategoryRequestMessage should be set to null if stack is empty.
+    // Depending on desired behavior, might need to fetch a default/home screen if stack is empty.
+    // this.currentCategoryRequestMessage = null; // Optional: clear if stack empty
+    return false; // Cannot go back further
+  }
+
+  send(message: string): void {
+    this.socket?.send(message);
+  }
+
+  getMessages(): Observable<string> {
+    return this.messages$.asObservable();
+  }
+
+  processResponse(response: any) {
+    console.log(response)
+    if ('Device' in response) {
+      if (
+        // Response register client
+        response?.Device?.SubscriptionMgr?.WsConnectionsList?.Ws01
+          ?.RegisteredClientList
+      ) {
+        for (const key in response.Device.SubscriptionMgr.WsConnectionsList.Ws01
+          .RegisteredClientList) {
+          this.rcSessionId = key;
+          this.suscribe();
+        }
+      }
+      if (
+        // Response susscribe
+        response?.Device?.SubscriptionMgr?.RegisteredClientList
+      )
+        this.streamingProviders();
+
+      if (
+        // Response providers
+        response?.Device?.StreamingServices?.UserProfiles
+      ) {
+        this.profiles = []; // Initialize to ensure it's empty before processing
+        for (const idProfile in response?.Device?.StreamingServices?.UserProfiles){
+          let profile: Profile = { // Explicitly type here
+            idProfile: idProfile,
+            name: response?.Device?.StreamingServices?.UserProfiles[idProfile]?.Name,
+            providers: [],
+          }
+          for (const idService in response?.Device?.StreamingServices?.UserProfiles[idProfile]?.AssignedProviders) {
+            const service: Provider = { // Explicitly type here
+              idService: idService,
+              name: response?.Device?.StreamingServices?.UserProfiles[idProfile]?.AssignedProviders[idService].Name
+            }
+            if (profile.providers)
+              profile.providers.push(service);
+            else
+              profile.providers = [service]; // Initialize if undefined
+          }
+          this.profiles.push(profile);
+        }
+        this.reportUIMessageData({ profiles: this.profiles });
+      }
+
+      const providerBrowseMenuUpdate = response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu;
+
+      if (providerBrowseMenuUpdate) { // Check if ProviderBrowseMenu update exists
+        this.categories = [];
+        const menuDataItems = providerBrowseMenuUpdate.Categories?.Item01?.MenuDataItems;
+
+        if (menuDataItems) {
+            // Iterate menuDataItems (assuming object based on current loop with 'id in menuDataItems')
+            for (const id in menuDataItems) {
+              const itemData = menuDataItems[id];
+              const category: CategoryItem = {
+                idCategorie: id,
+                browseItemName: itemData.BrowseItemName,
+                signedData: itemData.SignedData,
+                urlIcon: itemData.UrlIcon,
+                browseKey: itemData.BrowseKey,
+                providerKey: itemData.MediaTypeMetaData?.ProviderKey,
+                streamingMediaType: itemData.StreamingMediaType,
+                artistName: itemData.MediaTypeMetaData?.ArtistName,
+                albumName: itemData.MediaTypeMetaData?.AlbumName
+              };
+              this.categories.push(category);
+            }
+        }
+
+        const parentBrowseItemName = providerBrowseMenuUpdate.ParentBrowseKey?.BrowseItemName;
+
+        this.lastProcessedCategories = [...this.categories]; // Store a copy
+        this.lastProcessedParentCategoryName = parentBrowseItemName; // Store parent name
+        // console.log('[WebsocketService] Caching last processed categories. Count:', this.lastProcessedCategories.length, 'Parent:', this.lastProcessedParentCategoryName); // Removed
+
+        this.reportUIMessageData({
+            categories: this.categories,
+            parentCategoryName: parentBrowseItemName,
+            type: 'categories'
+        });
+      }
+
+      if (
+        // Response playback actions
+        response?.Device?.MediaPlayerNeXt?.Players?.Player01?.AvailableActions
+      ) {
+        // Assuming the response data is already a string[] or compatible.
+        // MediaPlayerState.availableActions is now string[] | undefined.
+        this.mediaPlayerState.availableActions = response.Device.MediaPlayerNeXt.Players.Player01.AvailableActions;
+        this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } }); // Spread to help change detection
+      }
+
+      // --- Start of Refactored NowPlayingData Block ---
+      const nowPlayingDataPath = response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData;
+
+      if (nowPlayingDataPath) { // Check if the NowPlayingData object itself exists
+        // Check for a valid TrackTitle before processing this NowPlayingData update
+        if (nowPlayingDataPath.TrackTitle && String(nowPlayingDataPath.TrackTitle).trim() !== '') {
+
+          const newNowPlaying: NowPlayingData = {
+            idnowPlaying: 'current', // Or generate/use a proper ID if available from nowPlayingDataPath.idnowPlaying
+            trackTitle: String(nowPlayingDataPath.TrackTitle),
+            artistName: String(nowPlayingDataPath.ArtistName || ''),
+            albumName: String(nowPlayingDataPath.AlbumName || ''),
+            stationName: String(nowPlayingDataPath.StationName || ''),
+            albumArtUrl: String(nowPlayingDataPath.AlbumArtUrl || ''),
+            trackNum: Number(nowPlayingDataPath.TrackNum || 0),
+            trackCnt: Number(nowPlayingDataPath.TrackCnt || 0),
+            duration: String(nowPlayingDataPath.Duration || '0') // Keep as string, PlayerComponent handles conversion
+          };
+
+          this.mediaPlayerState.nowPlayingData = newNowPlaying;
+
+          if (nowPlayingDataPath.hasOwnProperty('ElapsedSec')) {
+               this.mediaPlayerState.elapsedSec = String(nowPlayingDataPath.ElapsedSec || '0');
+          }
+
+          // console.log('[WebsocketService] Valid NowPlayingData received, mediaPlayerState updated:', this.mediaPlayerState); // Removed
+          this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } });
+
+        } else {
+          console.warn('[WebsocketService] Received NowPlayingData without a valid TrackTitle. Player info will not be updated with this message. Data:', nowPlayingDataPath); // Kept
+          // If only ElapsedSec came in this payload but TrackTitle was invalid, we might still want to process ElapsedSec.
+          // This logic currently skips the entire payload if TrackTitle is invalid.
+          // A separate check for ElapsedSec outside this if(nowPlayingDataPath.TrackTitle) block might be needed
+          // if ElapsedSec can arrive in a NowPlayingData object that temporarily lacks a TrackTitle.
+        }
+      }
+      // --- End of Refactored NowPlayingData Block ---
+
+      // The separate block for ElapsedSec updates (if it comes as a distinct message part or different path)
+      // This needs to be reviewed. If nowPlayingDataPath is the *only* source for ElapsedSec,
+      // and it's handled above (iff TrackTitle is valid), then this block might be redundant or needs adjustment.
+      // If an ElapsedSec update can come completely independently of a NowPlayingData object, this could be:
+      const elapsedSecPath = response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.ElapsedSec; // Path just for ElapsedSec
+      if (elapsedSecPath !== undefined && !nowPlayingDataPath) { // Only if not part of a NowPlayingData object processed above
+        // This condition means we received a message that is *not* a full NowPlayingData object
+        // but *does* contain an ElapsedSec update at the expected player path.
+        // This is less common; usually ElapsedSec is part of NowPlayingData.
+        // For safety, let's only update if there's already some nowPlayingData loaded.
+        if (this.mediaPlayerState.nowPlayingData) {
+            const newElapsedSec = String(elapsedSecPath || '0');
+            if (this.mediaPlayerState.elapsedSec !== newElapsedSec) { // Check if changed
+                this.mediaPlayerState.elapsedSec = newElapsedSec;
+                // console.log('[WebsocketService] Independent ElapsedSec update:', this.mediaPlayerState.elapsedSec); // Removed
+                this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } });
+            }
+        }
+      }
+      // However, the original code checked response?.Device?.MediaPlayerNeXt?.Players?.Player01?.Player?.NowPlayingData?.ElapsedSec
+      // which implies ElapsedSec is a field *within* NowPlayingData.
+      // The new logic already handles this if TrackTitle is valid.
+      // If TrackTitle is *invalid* but ElapsedSec is present in nowPlayingDataPath, the current refactor *misses* that ElapsedSec.
+      // Let's ensure an ElapsedSec within nowPlayingDataPath is processed even if TrackTitle is bad,
+      // but only if nowPlayingData is already populated (so we're just updating time for an existing track).
+      else if (nowPlayingDataPath && nowPlayingDataPath.hasOwnProperty('ElapsedSec') && (!nowPlayingDataPath.TrackTitle || String(nowPlayingDataPath.TrackTitle).trim() === '')) {
+          // This case: NowPlayingData object exists, it has ElapsedSec, but TrackTitle is invalid.
+          // We only update elapsedSec if there's already a track loaded.
+          if (this.mediaPlayerState.nowPlayingData && this.mediaPlayerState.nowPlayingData.trackTitle) {
+              const newElapsedSec = String(nowPlayingDataPath.ElapsedSec || '0');
+              if (this.mediaPlayerState.elapsedSec !== newElapsedSec) { // Check if changed
+                  this.mediaPlayerState.elapsedSec = newElapsedSec;
+                  // console.log('[WebsocketService] ElapsedSec updated for existing track (TrackTitle in this message was invalid):', this.mediaPlayerState.elapsedSec); // Removed
+                  this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } });
+              }
+          }
+      }
+
+
+      if (
+        // Response playback actions
+        response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.Notification?.Widget?.Msg
+      )
+        this.reportUIMessageData({ msgNotification: response?.Device?.MediaNavigation?.RegisteredClientMenus[this.rcSessionId]?.Notification?.Widget?.Msg });
+
+      // Check for SearchMenu results
+      const searchMenuDataItemsArray = response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu?.Categories?.Item01?.MenuDataItems;
+
+      if (searchMenuDataItemsArray && Array.isArray(searchMenuDataItemsArray)) {
+        const searchResults: CategoryItem[] = [];
+        for (const itemData of searchMenuDataItemsArray) { // Changed from for...in to for...of
+          if (!itemData) continue; // Skip if itemData itself is null/undefined in the array
+
+          const resultItem: CategoryItem = {
+            idCategorie: itemData.BrowseKey || `search_item_${Math.random().toString(36).substr(2, 9)}`, // Use BrowseKey or generate an ID
+            browseItemName: itemData.BrowseItemName || 'Unknown Item',
+            signedData: itemData.SignedData,
+            urlIcon: itemData.UrlIcon,
+            browseKey: itemData.BrowseKey,
+            providerKey: itemData.MediaTypeMetaData?.ProviderKey,
+            streamingMediaType: itemData.StreamingMediaType || 'unknown',
+            artistName: itemData.MediaTypeMetaData?.ArtistName,
+            albumName: itemData.MediaTypeMetaData?.AlbumName
+          };
+          searchResults.push(resultItem);
+        }
+        console.log('[WebsocketService] Processed SearchMenu results (from array):', searchResults);
+        this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' });
+      } else if (searchMenuDataItemsArray && typeof searchMenuDataItemsArray === 'object' && !Array.isArray(searchMenuDataItemsArray)) {
+        // This block handles the case where MenuDataItems is an OBJECT of items, not an array
+        // This was the previous assumption for browse/search results based on existing code.
+        const searchResults: CategoryItem[] = [];
+        for (const id in searchMenuDataItemsArray) { // Iterate object keys
+            const itemData = searchMenuDataItemsArray[id];
+            if (!itemData) continue;
+
+            const resultItem: CategoryItem = {
+                idCategorie: id, // Use the object key as ID
+                browseItemName: itemData.BrowseItemName || 'Unknown Item',
+                signedData: itemData.SignedData,
+                urlIcon: itemData.UrlIcon,
+                browseKey: itemData.BrowseKey,
+                providerKey: itemData.MediaTypeMetaData?.ProviderKey,
+                streamingMediaType: itemData.StreamingMediaType || 'unknown',
+                artistName: itemData.MediaTypeMetaData?.ArtistName,
+                albumName: itemData.MediaTypeMetaData?.AlbumName
+            };
+            searchResults.push(resultItem);
+        }
+        console.log('[WebsocketService] Processed SearchMenu results (from object):', searchResults);
+        this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' }); // Added type
+      } else if (response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu) {
+        // Handle case where SearchMenu path exists but MenuDataItems might be missing or not an array/object (e.g. no results)
+        console.warn('[WebsocketService] SearchMenu results MenuDataItems not found or not a recognized structure. Response path existed.', response.Device.MediaNavigation.RegisteredClientMenus[this.rcSessionId].MenuUpdates.SearchMenu);
+        this.reportUIMessageData({ searchResults: [], type: 'searchResults' }); // Emit empty results, added type
+      }
+    }
+  }
+
+  // saveCategory method removed
+
+  reportUIMessageData(data: any) {
+    this.UIMessageDataSource.next(data);
   }
 
   public get canNavigateBackInCategory(): boolean {
     return this.categoryHistoryStack.length > 0;
   }
 
-  public processResponse(response: any): void {
-    // console.log('[WebsocketService] Full response received for processing:', JSON.stringify(response)); // Kept
-
-    // Client Registration & Subscription
-    if (response?.Device?.SubscriptionMgr?.WsConnectionsList?.Ws01?.RegisteredClientList) {
-      const clientList = response.Device.SubscriptionMgr.WsConnectionsList.Ws01.RegisteredClientList;
-      const firstRcSessionId = Object.keys(clientList)[0];
-      if (firstRcSessionId && this.rcSessionId !== firstRcSessionId) {
-        this.rcSessionId = firstRcSessionId;
-        this.subscribeToCoreObjects(); // Renamed
-        this.requestCurrentPlayerStatus();
-      } else if (firstRcSessionId && this.rcSessionId === firstRcSessionId) {
-        if (!this.mediaPlayerState.nowPlayingData && !this.mediaPlayerState.elapsedSec) { // More specific check
-             this.requestCurrentPlayerStatus();
-        }
-      } else if (!firstRcSessionId) {
-          console.error('[WebsocketService] RegisteredClientList found but no RcSessionId keys.'); // Kept
-      }
+  // Add this new public method
+  public searchMedia(
+    searchQuery: string,
+    // providerKey: string, // No longer needed if SearchProviderKey is "ALL"
+    profileKey: string,
+    // rcSessionId: string // rcSessionId is a class member, no need to pass
+    searchCategory: string = 'song' // Default search category to 'song'
+  ): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      console.warn('[WebsocketService] WebSocket not connected. Cannot send search request.');
+      return;
     }
-    // This secondary check might be redundant if the above is robust for all registration scenarios
-    // if (response?.Device?.SubscriptionMgr?.RegisteredClientList && !this.rcSessionId) {
-    //     console.warn("[WebsocketService] Subscription confirmed, but rcSessionId might have been missed."); // Kept
-    //     if (this.rcSessionId) this.requestCurrentPlayerStatus();
-    // }
-
-
-    // Profiles
-    if (response?.Device?.StreamingServices?.UserProfiles) {
-      this.profiles = [];
-      for (const idProfile in response.Device.StreamingServices.UserProfiles) {
-        const profileData = response.Device.StreamingServices.UserProfiles[idProfile];
-        const profile: Profile = { idProfile, name: profileData?.Name, providers: [] };
-        if (profileData?.AssignedProviders) {
-          for (const idService in profileData.AssignedProviders) {
-            profile.providers?.push({ idService, name: profileData.AssignedProviders[idService]?.Name });
-          }
-        }
-        this.profiles.push(profile);
-      }
-      this.reportUIMessageData({ profiles: this.profiles, type: 'profiles' });
+    if (!this.rcSessionId) {
+      console.warn('[WebsocketService] No rcSessionId. Cannot send search request.');
+      return;
+    }
+    // profileKey is essential, using fallback to environment.profileKey if not provided.
+    const resolvedProfileKey = profileKey || environment.profileKey;
+    if (!resolvedProfileKey) {
+      console.warn('[WebsocketService] No profileKey available (neither passed nor in environment). Cannot send search request.');
+      return;
     }
 
-    // Categories (ProviderBrowseMenu)
-    const providerBrowseMenuUpdate = response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.ProviderBrowseMenu;
-    if (providerBrowseMenuUpdate) {
-      this.categories = [];
-      const menuDataItems = providerBrowseMenuUpdate.Categories?.Item01?.MenuDataItems;
-      if (menuDataItems && Array.isArray(menuDataItems)) {
-        for (const itemData of menuDataItems) {
-          if (!itemData) continue;
-          this.categories.push({
-            idCategorie: itemData.BrowseKey || `cat_${Math.random().toString(36).substr(2, 9)}`,
-            browseItemName: itemData.BrowseItemName || 'Unknown Category',
-            signedData: itemData.SignedData !== undefined ? itemData.SignedData : null,
-            urlIcon: itemData.UrlIcon,
-            browseKey: itemData.BrowseKey || '',
-            providerKey: itemData.MediaTypeMetaData?.ProviderKey,
-            streamingMediaType: itemData.StreamingMediaType || 'unknown',
-            artistName: itemData.MediaTypeMetaData?.ArtistName,
-            albumName: itemData.MediaTypeMetaData?.AlbumName
-          });
-        }
-      } // Assuming MenuDataItems is always an array if present for browse results
-
-      const parentBrowseItemName = providerBrowseMenuUpdate.ParentBrowseKey?.BrowseItemName;
-      this.lastProcessedCategories = [...this.categories];
-      this.lastProcessedParentCategoryName = parentBrowseItemName;
-      this.reportUIMessageData({ categories: this.categories, parentCategoryName: parentBrowseItemName, type: 'categories' });
-    }
-
-    // Search Results (SearchMenu)
-    // Assuming Search Menu items are also in an array under MenuDataItems
-    const searchMenuDataItems = response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu?.Categories?.Item01?.MenuDataItems;
-    if (searchMenuDataItems && Array.isArray(searchMenuDataItems)) {
-      const searchResults: CategoryItem[] = [];
-      for (const itemData of searchMenuDataItems) {
-        if (!itemData) continue;
-        const resultItem: CategoryItem = {
-          idCategorie: itemData.BrowseKey || `search_${Math.random().toString(36).substr(2, 9)}`,
-          browseItemName: itemData.BrowseItemName || 'Unknown Item',
-          signedData: itemData.SignedData !== undefined ? itemData.SignedData : null,
-          urlIcon: itemData.UrlIcon,
-          browseKey: itemData.BrowseKey || '',
-          providerKey: itemData.MediaTypeMetaData?.ProviderKey,
-          streamingMediaType: itemData.StreamingMediaType || 'unknown',
-          artistName: itemData.MediaTypeMetaData?.ArtistName,
-          albumName: itemData.MediaTypeMetaData?.AlbumName
-        };
-        if (!itemData.BrowseKey) console.warn('[WebsocketService] Search result item missing BrowseKey:', itemData); // Kept
-        searchResults.push(resultItem);
-      }
-      this.reportUIMessageData({ searchResults: searchResults, type: 'searchResults' });
-    } else if (response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.MenuUpdates?.SearchMenu) {
-      // This handles if SearchMenu object exists but MenuDataItems is empty or not an array
-      console.warn('[WebsocketService] SearchMenu results MenuDataItems not found or not an array.'); // Kept
-      this.reportUIMessageData({ searchResults: [], type: 'searchResults' });
-    }
-
-    // MediaPlayerNeXt State (NowPlayingData, AvailableActions, ElapsedSec)
-    const playerNode = response?.Device?.MediaPlayerNeXt?.Players?.[environment.playerId];
-    if (playerNode) {
-      let playerStateChanged = false;
-
-      if (playerNode.AvailableActions !== undefined) {
-        this.mediaPlayerState.availableActions = playerNode.AvailableActions; // Already corrected to array if was object
-        playerStateChanged = true;
-      }
-
-      const nowPlayingDataPath = playerNode.Player?.NowPlayingData;
-      if (nowPlayingDataPath) {
-        if (nowPlayingDataPath.TrackTitle && String(nowPlayingDataPath.TrackTitle).trim() !== '') {
-          const newNowPlaying: NowPlayingData = {
-            idnowPlaying: 'current', trackTitle: String(nowPlayingDataPath.TrackTitle),
-            artistName: String(nowPlayingDataPath.ArtistName || ''), albumName: String(nowPlayingDataPath.AlbumName || ''),
-            stationName: String(nowPlayingDataPath.StationName || ''), albumArtUrl: String(nowPlayingDataPath.AlbumArtUrl || ''),
-            trackNum: Number(nowPlayingDataPath.TrackNum || 0), trackCnt: Number(nowPlayingDataPath.TrackCnt || 0),
-            duration: String(nowPlayingDataPath.Duration || '0')
-          };
-          this.mediaPlayerState.nowPlayingData = newNowPlaying;
-          if (nowPlayingDataPath.hasOwnProperty('ElapsedSec')) {
-            this.mediaPlayerState.elapsedSec = String(nowPlayingDataPath.ElapsedSec || '0');
-          }
-          playerStateChanged = true;
-        } else {
-          if (nowPlayingDataPath.hasOwnProperty('ElapsedSec') && this.mediaPlayerState.nowPlayingData?.trackTitle) {
-            const newElapsedSec = String(nowPlayingDataPath.ElapsedSec || '0');
-            if (this.mediaPlayerState.elapsedSec !== newElapsedSec) {
-              this.mediaPlayerState.elapsedSec = newElapsedSec;
-              playerStateChanged = true;
+    const msg = {
+      Device: {
+        MediaNavigation: {
+          RequestAction: {
+            RcSessionId: this.rcSessionId,
+            MsgId: uuidv1(), // Ensure uuidv1 is imported
+            ProfileKey: resolvedProfileKey,
+            MenuCategory: 'SearchMenu',
+            MenuCategoryOptions: {
+              SearchProviderKey: 'ALL', // Search across all providers
+              SearchText: searchQuery,
+              SearchCategory: searchCategory, // e.g., "song", "artist", "album"
+              ItemCount: 50, // Standard item count
+              ItemOffset: 0
             }
           }
-           console.warn('[WebsocketService] Received NowPlayingData without valid TrackTitle. Partial update for ElapsedSec might have occurred if track was already playing.'); // Kept
-        }
-      } else if (playerNode.Player?.hasOwnProperty('ElapsedSec')) {
-        const newElapsedSecVal = String(playerNode.Player.ElapsedSec || '0');
-        if (this.mediaPlayerState.nowPlayingData) {
-            if (this.mediaPlayerState.elapsedSec !== newElapsedSecVal) {
-                this.mediaPlayerState.elapsedSec = newElapsedSecVal;
-                playerStateChanged = true;
-            }
-        } else {
-            if (this.mediaPlayerState.elapsedSec !== '0' || newElapsedSecVal !== '0') { // Avoid if already "0" and new is "0"
-                this.mediaPlayerState.elapsedSec = newElapsedSecVal; // Store it even if no track, might be "0"
-                playerStateChanged = true;
-            }
-        }
-         // If NowPlayingData becomes null (playback stopped), clear it
-        if (nowPlayingDataPath === null && this.mediaPlayerState.nowPlayingData) {
-            this.mediaPlayerState.nowPlayingData = undefined;
-            playerStateChanged = true;
         }
       }
+    };
 
-      if (playerStateChanged) {
-        this.reportUIMessageData({ mediaPlayerState: { ...this.mediaPlayerState } });
-      }
-    }
-
-    // Notifications
-    if (response?.Device?.MediaNavigation?.RegisteredClientMenus?.[this.rcSessionId]?.Notification?.Widget?.Msg) {
-      this.reportUIMessageData({ msgNotification: response.Device.MediaNavigation.RegisteredClientMenus[this.rcSessionId].Notification.Widget.Msg, type: 'notification' });
-    }
+    console.log('[WebsocketService] Sending search request:', JSON.stringify(msg));
+    this.send(JSON.stringify(msg));
+    // No changes to history stack or currentCategoryRequestMessage for search.
   }
 }
-```
-This version incorporates the requested log removals and applies the structural changes from the original prompt for this subtask.
-Key changes in this version:
--   Initial `UIMessageDataSource` value to `{}`.
--   `connect()`: WebSocket already connected/connecting check. `onmessage` removes redundant logging of `event.data`. `onopen` logs and reports `connected:true` with a type. `onclose` resets `rcSessionId` and reports `connected:false` with a type.
--   `send()`: Added check for WebSocket readiness.
--   `reportUIMessageData()`: Private now.
--   `subscribeToCoreObjects()`: Renamed from `suscribe` and added `rcSessionId` check.
--   `requestCurrentPlayerStatus()`: Added `rcSessionId` check.
--   `streamingProviders()`, `browseProvider()`, `browseCategorie()`, `searchMedia()`, `playback()`, `playbackAction()`: Added `rcSessionId` checks where appropriate.
--   `processResponse()`:
-    -   More robust `rcSessionId` handling to avoid re-subscribe loops and attempt player status on reconnects.
-    -   Simplified profile provider mapping.
-    -   Assumes `MenuDataItems` for browse categories is an array if present.
-    -   Assumes `MenuDataItems` for search results is an array if present.
-    -   More unified handling of `MediaPlayerNeXt` data under `playerNode`.
-    -   Handles `ElapsedSec` potentially arriving when `NowPlayingData` is null (e.g., after stop).
-    -   Clears `nowPlayingData` if explicitly set to `null` in response.
-    -   Adds `type` field to more `reportUIMessageData` calls.

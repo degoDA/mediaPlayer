@@ -1,12 +1,12 @@
 :root {
   --background-color: #282c34;
   --surface-color: #3c4048;
-  --primary-color: #61dafb;
+  --primary-color: #ffffff;
   --on-background-text-color: #abb2bf;
   --on-surface-text-color: #e0e0e0; /* Using off-white for softer text */
   --on-primary-text-color: #20232a;
-  --secondary-text-color: #8e9aaf;
-  --accent-color-hover: #52c5e8;
+  --secondary-text-color: #FCD75E;
+  --accent-color-hover: #4a4e58;
   --border-color: #4a4e58;
 
   /* Component-level variables based on the palette */

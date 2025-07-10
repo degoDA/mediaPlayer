@@ -13,6 +13,9 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   /* text-align: center; /* Removed for flex layout */
   flex-shrink: 0; /* ADD THIS LINE */
+  background: transparent linear-gradient(0deg, #032E38 0%, #083944 100%) 0% 0% no-repeat padding-box;
+  box-shadow: 0px 5px 10px #000000B3;
+  opacity: 1;
 }
 
 /* .player-header h2 rule can be removed or updated if .header-title takes over */
@@ -60,6 +63,10 @@
 }
 
 /* Removed .header-search-container styles */
+
+.back-icon{
+  font-size: medium;
+}
 
 .search-toggle-button {
   /* For a more subtle header button that's not primary action: */
@@ -109,7 +116,9 @@
   flex-direction: column; /* If children need to stack and one of them scrolls */
   box-sizing: border-box; /* Add or ensure */
   height: 100%; /* ADD THIS LINE */
-  /* background-color: lightblue !important; /* Removed temporary for debugging */
+  background: transparent linear-gradient(238deg, #1C2B2E 0%, #0E1618 100%) 0% 0% no-repeat padding-box;
+  box-shadow: 10px 10px 20px #000000CC;
+  opacity: 1;
 }
 
 /* Target the components when they are rendered by ngSwitch */
@@ -122,23 +131,11 @@
 }
 
 .player-footer {
-  background-color: var(--surface-color); /* Use CSS variable */
+  background: transparent linear-gradient(0deg, #142327 0%, #2F4046 100%) 0% 0% no-repeat padding-box;
+  box-shadow: 0px 5px 6px #00000085;
+  opacity: 1;
   padding: 10px;
   box-shadow: 0 -2px 4px rgba(0,0,0,0.2); /* Shadow on top */
   border-top: 1px solid var(--border-color);
   flex-shrink: 0; /* Prevent footer from shrinking */
 }
-
-/* Remove responsive rules if they are not needed or handled globally */
-/* @media (max-width: 768px) {
-  .content-area {
-    padding: 15px;
-    margin: 5px;
-  }
-  .player-header h2 {
-    font-size: 1.5em;
-  }
-  .player-footer {
-    padding: 5px;
-  }
-} */

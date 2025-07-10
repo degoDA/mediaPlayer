@@ -7,26 +7,27 @@
 
     <div class="track-details-text-wrapper">
       <h3 class="track-title-text" title="{{ trackTitle }}">{{ trackTitle || 'Unknown Title' }}</h3>
-      <p class="artist-name-text" title="{{ artistName }}">By: {{ artistName || 'Unknown Artist' }}</p>
-      <!-- <p class="album-name-text" title="{{ albumName }}">Album: {{ albumName || 'Unknown Album' }}</p> Removed -->
-      <!-- <p class="station-name-text" *ngIf="mediaPlayerState?.nowPlayingData?.stationName"> -->
-        <!-- Station: {{ mediaPlayerState?.nowPlayingData?.stationName }} -->
-      <!-- </p> Removed -->
+      <p class="artist-name-text" title="{{ artistName }}">{{ artistName || 'Unknown Artist' }}</p>
     </div>
 
     <div class="controls-section"> <!-- MOVED INSIDE -->
       <div class="buttons-container"> <!-- Main buttons -->
         <button class="control-button" (click)="sendPlaybackAction('Previous')" [disabled]="!isActionAvailable('Previous')" aria-label="Previous Track">
-          &#x23EE;
+          <img alt="play" src="./assets/img/previousWhite.svg">
         </button>
         <button class="control-button play-pause"
                 (click)="sendPlaybackAction('PlayPause')"
                 [disabled]="!isActionAvailable('PlayPause')"
                 aria-label="Play or Pause">
-          <span *ngIf="isCurrentlyPausable">&#x23F8;</span><span *ngIf="!isCurrentlyPausable">&#x25B6;</span>
+          <span *ngIf="isCurrentlyPausable">
+            <img alt="pause" src="./assets/img/pauseBlack.svg">
+          </span>
+          <span *ngIf="!isCurrentlyPausable">
+            <img alt="play" src="./assets/img/playBlack.svg">
+          </span>
         </button>
         <button class="control-button" (click)="sendPlaybackAction('Next')" [disabled]="!isActionAvailable('Next')" aria-label="Next Track">
-          &#x23ED;
+          <img alt="play" src="./assets/img/nextWhite.svg">
         </button>
       </div>
       <div class="secondary-buttons-container" *ngIf="mediaPlayerState?.availableActions?.length"> <!-- Secondary buttons -->
