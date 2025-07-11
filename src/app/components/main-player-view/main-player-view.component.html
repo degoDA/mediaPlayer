@@ -2,15 +2,13 @@
   <header class="app-header">
     <div class="header-content-wrapper"> <!-- New wrapper for flex layout -->
       <button class="header-main-back-button" (click)="goAppBack()" aria-label="Go back">
-        <span class="back-icon">&lt;</span> Back
+        <img alt="Back" class="header-icon" src="./assets/img/header/left_white.svg">
+        <span class="header-text">Back</span>
       </button>
       <h2 class="header-title">{{ currentHeaderTitle }}</h2> <!-- Re-added and bound -->
       <button class="search-toggle-button" (click)="toggleFullScreenSearch()" aria-label="Search">
-        <svg class="search-svg-icon" viewBox="0 0 24 24" fill="currentColor" width="22px" height="22px">
-          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-          <path d="M0 0h24v24H0z" fill="none"/>
-        </svg>
-        <span class="search-label">Search</span>
+        <img alt="Search" class="header-icon" src="./assets/img/header/Search.svg">
+        <span class="header-text">Search</span>
       </button>
     </div>
   </header>
@@ -31,14 +29,10 @@
         (itemSelected)="onPlayableItemSelected($event)"
         (categorySelected)="onCategoryNavigation($event)"
         (titleChanged)="onSubViewTitleChanged($event)">
-        <!-- (returnToServiceSelection) binding removed -->
       </app-category-navigation>
-
-      <!-- Redundant *ngSwitchCase="'player'" block removed -->
 
       <app-now-playing-view
         *ngSwitchCase="'nowPlayingFullScreen'">
-        <!-- (closeView) binding removed -->
       </app-now-playing-view>
 
       <div *ngSwitchDefault>
@@ -52,13 +46,6 @@
     <app-player (requestFullScreenPlayer)="switchToFullScreenPlayer()"></app-player>
   </footer>
 
-  <!-- Alternative strategy: Player is part of the main content area when view is 'player' -->
-  <!--
-  <div *ngIf="currentView === 'player'" class="dedicated-player-area">
-    <app-player></app-player>
-  </div>
-  -->
-
   <app-notification
     [message]="currentNotification!"
     *ngIf="currentNotification">
@@ -69,6 +56,6 @@
     *ngIf="showFullScreenSearch"
     (closeSearch)="toggleFullScreenSearch()"
       [activeProfile]="activeProfileForSearchContext"
-      (playableItemSelected)="onPlayableItemSelected($event)"> <!-- ADD THIS LINE -->
+      (playableItemSelected)="onPlayableItemSelected($event)">
   </app-full-screen-search>
 </div>

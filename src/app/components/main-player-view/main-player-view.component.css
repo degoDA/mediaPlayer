@@ -33,13 +33,14 @@
   flex-grow: 1; /* Allows title to take up space between buttons */
   text-align: center;
   color: var(--on-surface-text-color);
-  font-size: 1.2em; /* Or desired size */
+  font-size: 1em; /* Or desired size */
   font-weight: bold; /* Make title a bit bolder */
   margin: 0 10px; /* Horizontal margin to prevent touching buttons if text is long before ellipsis */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0; /* Helps with flex shrinking and ellipsis */
+  font-family: 'Montserrat-Medium';
 }
 
 .header-main-back-button {
@@ -52,8 +53,9 @@
   cursor: pointer;
   text-decoration: none;
   line-height: normal;
-  /* margin-right: auto; */ /* REMOVED THIS LINE */
   flex-shrink: 0; /* Add: prevent back button from shrinking */
+  display: flex;
+  align-items: center;
 }
 
 .header-main-back-button:hover {
@@ -64,16 +66,20 @@
 
 /* Removed .header-search-container styles */
 
-.back-icon{
-  font-size: medium;
+.header-icon{
+  width: 1rem;
+}
+
+.header-text{
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  font-family: "Montserrat-Light";
 }
 
 .search-toggle-button {
-  /* For a more subtle header button that's not primary action: */
   color: var(--on-surface-text-color); /* Text color matching header text */
   background-color: transparent;
   border: 1px solid transparent; /* Or var(--button-border) */
-
+  font-size: var(--button-font-size);
   padding: var(--button-padding); /* Use standard padding */
   cursor: pointer;
   line-height: normal; /* From standard button */

@@ -1,0 +1,98 @@
+/** Montserrat Regular **/
+@font-face {
+  font-family: "Montserrat-Regular";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Montserrat"), url("./assets/fonts/Montserrat-Regular.woff2") format("woff2"),
+    url("./assets/fonts/Montserrat-Regular.woff") format("woff");
+}
+
+/** Montserrat Light **/
+@font-face {
+  font-family: "Montserrat-Light";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Montserrat"), url("./assets/fonts/Montserrat-Light.woff2") format("woff2"),
+    url("./assets/fonts/Montserrat-Light.woff") format("woff");
+}
+
+/** Montserrat Medium **/
+@font-face {
+  font-family: "Montserrat-Medium";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Montserrat"), url("./assets/fonts/Montserrat-Medium.woff2") format("woff2"),
+    url("./assets/fonts/Montserrat-Medium.woff") format("woff");
+}
+
+/** Montserrat Semibold **/
+@font-face {
+  font-family: "Montserrat-Semibold";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Montserrat"), url("./assets/fonts/Montserrat-SemiBold.woff2") format("woff2"),
+    url("./assets/fonts/Montserrat-SemiBold.woff") format("woff");
+}
+
+/** Montserrat Bold **/
+@font-face {
+  font-family: "Montserrat-Bold";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Montserrat"), url("./assets/fonts/Montserrat-Bold.woff2") format("woff2"),
+    url("./assets/fonts/Montserrat-Bold.woff") format("woff");
+}
+
+/** Opensans-Regular **/
+@font-face {
+  font-family: "Opensans-Regular";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Open Sans"), url("./assets/fonts/OpenSans-Regular.woff2") format("woff2"),
+    url("./assets/fonts/OpenSans-Regular.woff") format("woff");
+}
+
+/** Opensans-Light **/
+@font-face {
+  font-family: "Opensans-Light";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Open Sans"), url("./assets/fonts/OpenSans-Light.woff2") format("woff2"),
+    url("./assets/fonts/OpenSans-Light.woff") format("woff");
+}
+
+/** Opensans-Semibold **/
+@font-face {
+  font-family: "Opensans-Semibold";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Open Sans"), url("./assets/fonts/OpenSans-SemiBold.woff2") format("woff2"),
+    url("./assets/fonts/OpenSans-SemiBold.woff") format("woff");
+}
+
+/** Opensans-Bold **/
+@font-face {
+  font-family: "Opensans-Bold";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+000-5FF;
+  src: local("Open Sans"), url("./assets/fonts/OpenSans-Bold.woff2") format("woff2"),
+    url("./assets/fonts/OpenSans-Bold.woff") format("woff");
+}

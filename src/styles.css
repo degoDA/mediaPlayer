@@ -36,9 +36,6 @@
   --button-border-radius: 4px;
   --button-padding: 8px 15px;
   --button-font-size: 0.9em;
-  /* --button-text-color: var(--on-primary-text-color); /* Already defined earlier */
-  /* --button-background-color: var(--primary-color); /* Already defined earlier */
-  /* --button-hover-background-color: var(--accent-color-hover); /* Already defined earlier */
   --button-border: none;
 }
 
