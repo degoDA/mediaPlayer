@@ -108,7 +108,7 @@
 .progress-bar-container-np { width: 100%; border-radius: 4px; padding: 0; height: 10px; } /* Adjusted padding for direct progress */
 progress[value].playback-progress-np { width: 100%; height: 4px; appearance: none; -webkit-appearance: none; border: none; border-radius: 4px;}
 progress[value].playback-progress-np::-webkit-progress-bar { background-color: var(--background-color); border-radius: 4px; }
-progress[value].playback-progress-np::-webkit-progress-value { background-color: var(--primary-color); border-radius: 4px; transition: width 0.1s linear; }
+progress[value].playback-progress-np::-webkit-progress-value { background-color: #00A5CC; border-radius: 4px; transition: width 0.1s linear; }
 progress[value].playback-progress-np::-moz-progress-bar { background-color: var(--primary-color); border-radius: 4px; transition: width 0.1s linear; }
 
 .controls-section-np { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top:10px }
@@ -116,19 +116,35 @@ progress[value].playback-progress-np::-moz-progress-bar { background-color: var(
 .secondary-buttons-np { display: flex; gap: 15px; align-items: center; }
 
 .control-button-np {
-  background-color: transparent; color: var(--primary-color);
-  border: 1px solid var(--primary-color); border-radius: 50%;
-  width: 50px; height: 50px; font-size: 1.8em;
-  cursor: pointer; transition: background-color 0.2s, color 0.2s;
-  display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1;
+  background-color: transparent;
+  color: var(--primary-color);
+  border: none;
+  width: 44px;  /* Slightly larger to accommodate bigger icon */
+  height: 44px; /* Slightly larger */
+  font-size: 1.6em;  /* Increased icon size */
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0; /* Ensure no padding interferes with icon centering */
+  line-height: 1; /* Helps center text-based icons if flex isn't perfect */
 }
-.control-button-np.play-pause-np { width: 65px; height: 65px; font-size: 2.2em; }
+
+.control-button-np.play-pause-np {
+  width: 60px; /* Keeping it slightly larger */
+  height: 40px;
+  background: transparent linear-gradient(1deg, #D6D6D6 0%, #FFFFFF 100%) 0% 0% no-repeat padding-box;
+  box-shadow: 0px 5px 6px #00000085;
+  border-radius: 22px;
+  opacity: 1;
+ }
 .control-button-np.secondary-np {
   width: 45px; height: 45px; font-size: 1.5em;
   color: var(--on-surface-text-color); border-color: var(--border-color);
 }
-.control-button-np:hover:not(:disabled) { background-color: var(--primary-color); color: var(--on-primary-text-color); }
-.control-button-np.secondary-np:hover:not(:disabled) { background-color: var(--accent-color-hover); color: var(--on-primary-text-color); border-color: var(--accent-color-hover); }
+.control-button-np:hover:not(:disabled) { color: var(--on-primary-text-color); }
+.control-button-np.secondary-np:hover:not(:disabled) { color: var(--on-primary-text-color); border-color: var(--accent-color-hover); }
 
 .control-button-np:disabled { color: var(--border-color); border-color: var(--border-color); cursor: not-allowed; background-color: transparent; }
 .control-button-np.secondary-np.active { background-color: var(--primary-color); color: var(--on-primary-text-color); border-color: var(--primary-color); }

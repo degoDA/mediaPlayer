@@ -105,8 +105,6 @@
 .control-button {
   background-color: transparent;
   color: var(--primary-color);
-  border: 1px solid;
-  border-radius: 50%; /* Circular buttons */
   width: 44px;  /* Slightly larger to accommodate bigger icon */
   height: 44px; /* Slightly larger */
   font-size: 1.6em;  /* Increased icon size */
@@ -117,6 +115,7 @@
   justify-content: center;
   padding: 0; /* Ensure no padding interferes with icon centering */
   line-height: 1; /* Helps center text-based icons if flex isn't perfect */
+  border: none;
 }
 
 .control-button.play-pause { /* Specific for play-pause if larger */

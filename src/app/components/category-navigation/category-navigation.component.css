@@ -66,6 +66,7 @@
   align-items: center; /* Align items vertically in the center of the row */
   background: #152426 0% 0% no-repeat padding-box;
   box-shadow: 0px 5px 10px #000000B3;
+  font-family: "Montserrat-Medium";
 }
 
 .card.category-card:hover {
@@ -111,14 +112,14 @@
 }
 
 .category-name.card-title { /* Targets h4 */
-   font-size: 1.2em; /* Increased font size */
+  font-size: 1em; /* Increased font size */
   color: var(--card-title-color);
   margin: 0 0 5px 0;
   word-break: break-word;
 }
 
 .category-type.card-subtitle { /* Targets p */
-   font-size: 0.9em; /* Increased font size */
+  font-size: 0.9em; /* Increased font size */
   color: var(--secondary-text-color);
   margin: 0;
   word-break: break-word;

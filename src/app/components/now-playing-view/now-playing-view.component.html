@@ -27,11 +27,19 @@
 
         <div class="controls-section-np">
           <div class="main-buttons-np">
-            <button class="control-button-np" (click)="sendPlaybackAction('Previous')" [disabled]="!isActionAvailable('Previous')" aria-label="Previous Track">&#x23EE;</button>
-            <button class="control-button-np play-pause-np" (click)="sendPlaybackAction('PlayPause')" [disabled]="!isActionAvailable('PlayPause')" aria-label="Play or Pause">
-              <span *ngIf="isCurrentlyPausable">&#x23F8;</span><span *ngIf="!isCurrentlyPausable">&#x25B6;</span>
+            <button class="control-button-np" (click)="sendPlaybackAction('Previous')" [disabled]="!isActionAvailable('Previous')" aria-label="Previous Track">
+              <img alt="play" src="./assets/img/previousWhite.svg">
             </button>
-            <button class="control-button-np" (click)="sendPlaybackAction('Next')" [disabled]="!isActionAvailable('Next')" aria-label="Next Track">&#x23ED;</button>
+            <button class="control-button-np play-pause-np" (click)="sendPlaybackAction('PlayPause')" [disabled]="!isActionAvailable('PlayPause')" aria-label="Play or Pause">
+              <span *ngIf="isCurrentlyPausable">
+                <img alt="pause" src="./assets/img/pauseBlack.svg">
+              </span><span *ngIf="!isCurrentlyPausable">
+                <img alt="play" src="./assets/img/playBlack.svg">
+              </span>
+            </button>
+            <button class="control-button-np" (click)="sendPlaybackAction('Next')" [disabled]="!isActionAvailable('Next')" aria-label="Next Track">
+              <img alt="play" src="./assets/img/nextWhite.svg">
+            </button>
           </div>
           <div class="secondary-buttons-np" *ngIf="mediaPlayerState?.availableActions?.length">
             <button *ngIf="isActionAvailable('Shuffle')" class="control-button-np secondary-np" (click)="sendPlaybackAction('Shuffle')" [class.active]="mediaPlayerState?.availableActions?.includes('Shuffle')" aria-label="Shuffle">&#x1F500;</button>
