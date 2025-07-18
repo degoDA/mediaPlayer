@@ -10,6 +10,10 @@
         <img alt="Search" class="header-icon" src="./assets/img/header/Search.svg">
         <span class="header-text">Search</span>
       </button>
+      <button class="search-toggle-button" (click)="selectProfile()" aria-label="Search">
+        <img alt="Search" class="header-icon" src="./assets/img/header/Search.svg">
+        <span class="header-text">Profiles</span>
+      </button>
     </div>
   </header>
 
@@ -20,7 +24,9 @@
         [autoSelectProfileId]="activeProfileIdForServiceView"
         (providerSelected)="onProviderSelected($event)"
         (profileContextUpdated)="onProfileContextUpdated($event)"
-        (titleChanged)="onSubViewTitleChanged($event)">
+        (titleChanged)="onSubViewTitleChanged($event)"
+        [selectedProfile]="profile"
+        >
       </app-profile-selection>
 
       <app-category-navigation

@@ -56,6 +56,7 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
 
   private notificationTimeout: any = null;
   private uiSubscription: any;
+  profile : any = null;
 
   constructor(
     public websocketService: WebsocketService,
@@ -280,5 +281,11 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
         console.log('[MainPlayerView] At root profile list, no further in-app back action defined for now.'); // Kept
       }
     }
+  }
+
+  selectProfile(): void{
+    this.currentView = 'profiles';
+    this.profile = undefined;
+    this.onProfileContextUpdated(null);
   }
 }

@@ -16,13 +16,12 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   @Input() autoSelectProfileId?: string;
   @Output() profileContextUpdated = new EventEmitter<Profile | null>();
   @Output() titleChanged = new EventEmitter<string>(); // Added
+  @Input() selectedProfile?: Profile;
   profiles: Profile[] = [];
-  selectedProfile?: Profile;
   servicesForSelectedProfile: Provider[] = [];
   private uiSubscription!: Subscription; // Definite assignment assertion
 
   constructor(private websocketService: WebsocketService) {}
-
   ngOnInit(): void {
     this.uiSubscription = this.websocketService.newUIMessageData.subscribe((data: any) => {
       if (data.profiles && Array.isArray(data.profiles)) {
