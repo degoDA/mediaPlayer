@@ -1,0 +1,16 @@
+<div class="main-video-container">
+    <ch5-background backgroundcolor="#40a4c4"></ch5-background>
+      <div class="video-container">
+        <ch5-video
+          snapshotURL="rtsp://user:dainc1@chris.daprogramsdns.com:554/cam/realmonitor?channel=6&subtype=1"
+          size="small"
+          spectRatio="4:3"
+          debug="true"
+          url="http://166.154.166.8/mjpg/video.mjpg"
+          stretch="true">
+            <div class="controls">
+                <div (click)="printConsole('Signal rtsp')">Console</div>
+            </div>
+        </ch5-video>
+      </div>
+</div>

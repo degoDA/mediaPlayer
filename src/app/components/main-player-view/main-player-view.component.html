@@ -14,6 +14,9 @@
         <img alt="Search" class="header-icon" src="./assets/img/header/Search.svg">
         <span class="header-text">Profiles</span>
       </button> -->
+      <button class="search-toggle-button" (click)="selectVideo()" aria-label="Video">
+        <span class="header-text">Video</span>
+      </button>
     </div>
   </header>
 
@@ -40,6 +43,10 @@
       <app-now-playing-view
         *ngSwitchCase="'nowPlayingFullScreen'">
       </app-now-playing-view>
+
+      <app-security-camera
+        *ngSwitchCase="'video'">
+      </app-security-camera>
 
       <div *ngSwitchDefault>
         <p>Loading or unknown view...</p>

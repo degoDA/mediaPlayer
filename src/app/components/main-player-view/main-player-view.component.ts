@@ -23,8 +23,9 @@ import { Profile } from '../../interfaces/profile.interface';
 import { NotificationComponent } from '../notification/notification.component';
 import { FullScreenSearchComponent } from '../full-screen-search/full-screen-search.component';
 import { NowPlayingViewComponent } from '../now-playing-view/now-playing-view.component';
+import { SecurityCameraComponent } from "../security-camera/security-camera.component";
 
-export type PlayerViewStates = 'profiles' | 'categories' | 'nowPlayingFullScreen'; // 'player' removed
+export type PlayerViewStates = 'profiles' | 'categories' | 'nowPlayingFullScreen' | 'video'; // 'player' removed
 
 @Component({
   selector: 'app-main-player-view',
@@ -37,7 +38,9 @@ export type PlayerViewStates = 'profiles' | 'categories' | 'nowPlayingFullScreen
     NotificationComponent,
     FullScreenSearchComponent,
     NowPlayingViewComponent // Added
-  ],
+    ,
+    SecurityCameraComponent
+],
   templateUrl: './main-player-view.component.html',
   styleUrls: ['./main-player-view.component.css']
 })
@@ -287,5 +290,9 @@ export class MainPlayerViewComponent implements OnInit, OnDestroy {
     this.currentView = 'profiles';
     this.profile = undefined;
     this.onProfileContextUpdated(null);
+  }
+
+  selectVideo(): void{
+    this.currentView = 'video';
   }
 }
